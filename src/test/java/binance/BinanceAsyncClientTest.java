@@ -6,26 +6,27 @@
 
 package binance;
 
-import api.binance.BinanceApiClientFactory;
-import api.binance.BinanceApiRestClient;
-import api.binance.impl.MBinanceAsyncRestClientImpl;
-import api.req.MCancelOrderRequest;
-import api.req.MGetBalanceRequest;
-import api.req.MPlaceOrderRequest;
-import api.req.MQueryOrderRequest;
-import api.rsp.MCancelOrderRsp;
-import api.rsp.MDepth;
-import api.rsp.MGetAccountsRsp;
-import api.rsp.MGetBalanceRsp;
-import api.rsp.MOrderSide;
-import api.rsp.MOrderType;
-import api.rsp.MPlaceOrderRsp;
-import api.rsp.MQueryOrderRsp;
+import org.hrl.api.binance.BinanceApiClientFactory;
+import org.hrl.api.binance.BinanceApiRestClient;
+import org.hrl.api.binance.impl.MBinanceAsyncRestClientImpl;
+import org.hrl.api.req.MCancelOrderRequest;
+import org.hrl.api.req.MGetBalanceRequest;
+import org.hrl.api.req.MPlaceOrderRequest;
+import org.hrl.api.req.MQueryOrderRequest;
+import org.hrl.api.rsp.MCancelOrderRsp;
+import org.hrl.api.rsp.MDepth;
+import org.hrl.api.rsp.MGetAccountsRsp;
+import org.hrl.api.rsp.MGetBalanceRsp;
+import org.hrl.api.rsp.MOrderSide;
+import org.hrl.api.rsp.MOrderType;
+import org.hrl.api.rsp.MPlaceOrderRsp;
+import org.hrl.api.rsp.MQueryOrderRsp;
 import java.io.IOException;
 import java.util.Properties;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.FutureTask;
 import org.junit.BeforeClass;
+import org.junit.Ignore;
 import org.junit.Test;
 
 public class BinanceAsyncClientTest {
@@ -55,9 +56,10 @@ public class BinanceAsyncClientTest {
 
     }
 
+    @Ignore
     @Test
     public void testDepth() {
-        FutureTask<MDepth> mDepthFutureTask = mBinanceAsyncRestClient.depth("btc", "usdt");
+        FutureTask<MDepth> mDepthFutureTask = mBinanceAsyncRestClient.depth("ht", "usdt");
 
         try {
             MDepth mDepth = mDepthFutureTask.get();
@@ -69,6 +71,7 @@ public class BinanceAsyncClientTest {
         }
     }
 
+    @Ignore
     @Test
     public void testGetAccounts() {
         FutureTask<MGetAccountsRsp> futureTask = mBinanceAsyncRestClient.getAccounts();
@@ -83,6 +86,7 @@ public class BinanceAsyncClientTest {
         }
     }
 
+    @Ignore
     @Test
     public void testGetBalances() {
         MGetBalanceRequest mGetBalanceRequest = new MGetBalanceRequest();
@@ -99,6 +103,7 @@ public class BinanceAsyncClientTest {
         }
     }
 
+    @Ignore
     @Test
     public void testPlaceOrder(){
         MPlaceOrderRequest mPlaceOrderRequest = new MPlaceOrderRequest();
@@ -123,6 +128,7 @@ public class BinanceAsyncClientTest {
 
     }
 
+    @Ignore
     @Test
     public void testQueryOrder(){
 
@@ -145,6 +151,7 @@ public class BinanceAsyncClientTest {
         }
     }
 
+    @Ignore
     @Test
     public void testCancelOrder() {
         MCancelOrderRequest mCancelOrderRequest = new MCancelOrderRequest();

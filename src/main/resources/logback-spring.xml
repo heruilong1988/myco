@@ -1,0 +1,174 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<configuration>
+
+    <timestamp key="bySecond" datePattern="yyyyMMdd'T'HHmmss"/>
+
+    <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+        <!-- encoders are assigned the type
+             ch.qos.logback.classic.encoder.PatternLayoutEncoder by default -->
+        <encoder>
+            <pattern>%d{yyyy/MM/ddHH:mm:ss.SSS} %-5level %logger{36} - %msg%n</pattern>
+        </encoder>
+    </appender>
+
+
+
+    <appender name="BTCROLLING" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>./logs/btcusdt.txt</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+            <!-- rollover daily -->
+            <fileNamePattern>./logs/bak/btcusdt-%d{yyyy-MM-dd}.%i.txt</fileNamePattern>
+            <!-- each file should be at most 20MB, keep 60 days worth of history, but at most 20GB -->
+            <maxFileSize>20MB</maxFileSize>
+            <maxHistory>60</maxHistory>
+            <totalSizeCap>20GB</totalSizeCap>
+        </rollingPolicy>
+        <encoder>
+            <pattern>%d{yyyy/MM/ddHH:mm:ss.SSS} %-5level %logger{36} - %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <appender name="ETHROLLING" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>./logs/ethusdt.txt</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+            <!-- rollover daily -->
+            <fileNamePattern>./logs/bak/ethusdt-%d{yyyy-MM-dd}.%i.txt</fileNamePattern>
+            <!-- each file should be at most 20MB, keep 60 days worth of history, but at most 20GB -->
+            <maxFileSize>20MB</maxFileSize>
+            <maxHistory>60</maxHistory>
+            <totalSizeCap>20GB</totalSizeCap>
+        </rollingPolicy>
+        <encoder>
+            <pattern>%d{yyyy/MM/ddHH:mm:ss.SSS} %-5level %logger{36} - %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <appender name="XRPROLLING" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>./logs/xrpusdt.txt</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+            <!-- rollover daily -->
+            <fileNamePattern>./logs/bak/xrpusdt-%d{yyyy-MM-dd}.%i.txt</fileNamePattern>
+            <!-- each file should be at most 20MB, keep 60 days worth of history, but at most 20GB -->
+            <maxFileSize>20MB</maxFileSize>
+            <maxHistory>60</maxHistory>
+            <totalSizeCap>20GB</totalSizeCap>
+        </rollingPolicy>
+        <encoder>
+            <pattern>%d{yyyy/MM/ddHH:mm:ss.SSS} %-5level %logger{36} - %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <appender name="TRXROLLING" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>./logs/trxusdt.txt</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+            <!-- rollover daily -->
+            <fileNamePattern>./logs/bak/trxusdt-%d{yyyy-MM-dd}.%i.txt</fileNamePattern>
+            <!-- each file should be at most 20MB, keep 60 days worth of history, but at most 20GB -->
+            <maxFileSize>20MB</maxFileSize>
+            <maxHistory>60</maxHistory>
+            <totalSizeCap>20GB</totalSizeCap>
+        </rollingPolicy>
+        <encoder>
+            <pattern>%d{yyyy/MM/ddHH:mm:ss.SSS} %-5level %logger{36} - %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <appender name="LTCROLLING" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>./logs/ltcusdt.txt</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+            <!-- rollover daily -->
+            <fileNamePattern>./logs/bak/ltcusdt-%d{yyyy-MM-dd}.%i.txt</fileNamePattern>
+            <!-- each file should be at most 20MB, keep 60 days worth of history, but at most 20GB -->
+            <maxFileSize>20MB</maxFileSize>
+            <maxHistory>60</maxHistory>
+            <totalSizeCap>20GB</totalSizeCap>
+        </rollingPolicy>
+        <encoder>
+            <pattern>%d{yyyy/MM/ddHH:mm:ss.SSS} %-5level %logger{36} - %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <appender name="ETCROLLING" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>./logs/etcusdt.txt</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+            <!-- rollover daily -->
+            <fileNamePattern>./logs/bak/etcusdt-%d{yyyy-MM-dd}.%i.txt</fileNamePattern>
+            <!-- each file should be at most 20MB, keep 60 days worth of history, but at most 20GB -->
+            <maxFileSize>20MB</maxFileSize>
+            <maxHistory>60</maxHistory>
+            <totalSizeCap>20GB</totalSizeCap>
+        </rollingPolicy>
+        <encoder>
+            <pattern>%d{yyyy/MM/ddHH:mm:ss.SSS} %-5level %logger{36} - %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <appender name="EOSROLLING" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>./logs/eosusdt.txt</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+            <!-- rollover daily -->
+            <fileNamePattern>./logs/bak/eosusdt-%d{yyyy-MM-dd}.%i.txt</fileNamePattern>
+            <!-- each file should be at most 20MB, keep 60 days worth of history, but at most 20GB -->
+            <maxFileSize>20MB</maxFileSize>
+            <maxHistory>60</maxHistory>
+            <totalSizeCap>20GB</totalSizeCap>
+        </rollingPolicy>
+        <encoder>
+            <pattern>%d{yyyy/MM/ddHH:mm:ss.SSS} %-5level %logger{36} - %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <appender name="EOS-ORDER-ROLLING" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>./logs/eosusdt_order.txt</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+            <!-- rollover daily -->
+            <fileNamePattern>./logs/bak/eosusdt_order-%d{yyyy-MM-dd}.%i.txt</fileNamePattern>
+            <!-- each file should be at most 20MB, keep 60 days worth of history, but at most 20GB -->
+            <maxFileSize>20MB</maxFileSize>
+            <maxHistory>60</maxHistory>
+            <totalSizeCap>20GB</totalSizeCap>
+        </rollingPolicy>
+        <encoder>
+            <pattern>%d{yyyy/MM/ddHH:mm:ss.SSS} %-5level %logger{36} - %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <logger name="btc">
+        <appender-ref ref="BTCROLLING" />
+    </logger>
+
+    <logger name="eth">
+        <appender-ref ref="ETHROLLING" />
+    </logger>
+
+    <logger name="xrp">
+        <appender-ref ref="XRPROLLING" />
+    </logger>
+
+    <logger name="trx">
+        <appender-ref ref="TRXROLLING" />
+    </logger>
+
+    <logger name="ltc">
+        <appender-ref ref="LTCROLLING" />
+    </logger>
+
+    <logger name="etc">
+        <appender-ref ref="ETCROLLING" />
+    </logger>
+
+    <logger name="eos">
+        <appender-ref ref="EOSROLLING" />
+    </logger>
+
+    <logger name="eos.Order">
+        <appender-ref ref="EOS-ORDER-ROLLING" />
+    </logger>
+
+    <root level="INFO">
+        <appender-ref ref="STDOUT" />
+    </root>
+
+
+</configuration>

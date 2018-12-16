@@ -1,0 +1,107 @@
+package org.hrl.domain;
+
+import com.google.common.base.MoreObjects;
+import org.hrl.api.MAsyncRestClient;
+import org.hrl.api.huobi.task.QueryOrderTask;
+import org.hrl.api.req.MQueryOrderRequest;
+import org.hrl.api.rsp.MPlaceOrderRsp;
+import org.hrl.api.rsp.MQueryOrderRsp;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
+import java.util.concurrent.FutureTask;
+
+public class PlacedOrderVO {
+
+    private Logger ORDERLOG = null;
+
+    private MAsyncRestClient mAsyncRestClient;
+
+    private ProfitableTradeVO profitableTradeVO;
+    private MPlaceOrderRsp mPlaceOrderRsp;
+
+    private MQueryOrderRsp mQueryOrderRsp;
+
+    private boolean finished;
+
+
+
+    public PlacedOrderVO(MAsyncRestClient mAsyncRestClient, ProfitableTradeVO profitableTradeVO, MPlaceOrderRsp mPlaceOrderRsp) {
+        this.profitableTradeVO = profitableTradeVO;
+        this.mAsyncRestClient = mAsyncRestClient;
+        this.mPlaceOrderRsp = mPlaceOrderRsp;
+        ORDERLOG = LoggerFactory.getLogger(profitableTradeVO.getBaseCoin() + ".Order");
+    }
+
+    public ProfitableTradeVO getProfitableTradeVO() {
+        return profitableTradeVO;
+    }
+
+    public void setProfitableTradeVO(ProfitableTradeVO profitableTradeVO) {
+        this.profitableTradeVO = profitableTradeVO;
+    }
+
+    public MAsyncRestClient getmAsyncRestClient() {
+        return mAsyncRestClient;
+    }
+
+    public void setmAsyncRestClient(MAsyncRestClient mAsyncRestClient) {
+        this.mAsyncRestClient = mAsyncRestClient;
+    }
+
+    public MPlaceOrderRsp getmPlaceOrderRsp() {
+        return mPlaceOrderRsp;
+    }
+
+    public void setmPlaceOrderRsp(MPlaceOrderRsp mPlaceOrderRsp) {
+        this.mPlaceOrderRsp = mPlaceOrderRsp;
+    }
+
+    public MQueryOrderRsp getmQueryOrderRsp() {
+        return mQueryOrderRsp;
+    }
+
+    public void setmQueryOrderRsp(MQueryOrderRsp mQueryOrderRsp) {
+        this.mQueryOrderRsp = mQueryOrderRsp;
+    }
+
+    public boolean isFinished() {
+        return finished;
+    }
+
+    public void setFinished(boolean finished) {
+        this.finished = finished;
+    }
+
+    public MQueryOrderRsp asyncQueryOrder() {
+        if (mPlaceOrderRsp != null) {
+            MQueryOrderRequest mQueryOrderRequest = new MQueryOrderRequest();
+            mQueryOrderRequest.setOrderId(mPlaceOrderRsp.getOrderId());
+            mQueryOrderRequest.setBaseCoin(profitableTradeVO.getBaseCoin());
+            mQueryOrderRequest.setQuoteCoin(profitableTradeVO.getQuoteCoin());
+
+            FutureTask<MQueryOrderRsp> mQueryOrderRspFutureTask = mAsyncRestClient.queryOrder(mQueryOrderRequest);
+            try {
+                MQueryOrderRsp mQueryOrderRsp = mQueryOrderRspFutureTask.get();
+                return mQueryOrderRsp;
+            } catch (InterruptedException e) {
+                ORDERLOG.info("fail query placedOrder. placedOrderVO:{}", this);
+            } catch (ExecutionException e) {
+                ORDERLOG.info("fail query placedOrder. placedOrderVO:{}", this);
+            }
+        }
+        return null;
+    }
+
+    @Override
+    public String toString() {
+        return MoreObjects.toStringHelper(this)
+                .add("mAsyncRestClient", mAsyncRestClient)
+                .add("mPlaceOrderRsp", mPlaceOrderRsp)
+                .add("mQueryOrderRsp", mQueryOrderRsp)
+                .toString();
+    }
+}
+
