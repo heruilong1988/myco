@@ -65,10 +65,12 @@ public class Application {
         if(appConfig.isDataCollectEnabled()) {
             MultipleThreadStrategy1DataCollect multipleThreadStrategy1DataCollect = new MultipleThreadStrategy1DataCollect(huoBiAsyncRestClient,mBinanceAsyncRestClient, appConfig.getBaseCoinArr().split(","));
             multipleThreadStrategy1DataCollect.start();
+            System.out.println("multipleTreadStrategy1DataCollect started.===============================================");
         } else {
 
             MultipleThreadStrategy1 multipleThreadStrategy1 = new MultipleThreadStrategy1(huoBiAsyncRestClient, mBinanceAsyncRestClient);
             multipleThreadStrategy1.start();
+            System.out.println("multipleTreadStrategy1 started.===============================================");
         }
 
         String serviceName ="twoplatformcoin";
