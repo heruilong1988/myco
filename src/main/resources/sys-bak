@@ -1,2 +1,10 @@
-profit-threshold=0.005
-req-interval-millis=100
+proxy-enabled=true
+
+datacollect-enabled=true
+
+profit-threshold=0
+req-interval-millis=400
+
+
+baseCoinArr=iota
+#baseCoinArr=vet,qtum,ada,iota

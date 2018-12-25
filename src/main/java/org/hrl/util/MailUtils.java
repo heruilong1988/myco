@@ -20,9 +20,9 @@ public class MailUtils {
         MailUtils.sendMail("hello");
     }
 
-    private static String to = "82716195712312@qq.com";
-    private static String from = "heruil123@126.com";
-    private static String password="heru321ilong121990";
+    private static String to = "827161957@qq.com";
+    private static String from = "heruil@126.com";
+    private static String password="heruilong1990";
     static String host = "smtp.126.com";
 
     static Session session;
@@ -33,8 +33,8 @@ public class MailUtils {
 
         // 设置邮件服务器
         properties.setProperty("mail.smtp.host", host);
-        properties.setProperty("mail.user","herui312312l@126.com");
-        properties.setProperty("mail.password", "heru321ilong1990");
+        properties.setProperty("mail.user","heruil@126.com");
+        properties.setProperty("mail.password", "heruilong1990");
 
         // 获取默认session对象
         session = Session.getDefaultInstance(properties);

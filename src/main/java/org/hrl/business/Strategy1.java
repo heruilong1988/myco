@@ -122,12 +122,14 @@ public class Strategy1 {
     }
 
     public void dataCollect() {
+        LOGGER.error("error!!!");
         while (true) {
             try {
                 long startNs = System.nanoTime();
                 calcDepthProfit();
 
                 long sleepMs = calcSleepMillis(startNs);
+                LOGGER.info("sleepMs:{}", sleepMs);
                 if (sleepMs > 0) {
                     try {
                         //System.out.println(sleepTime);
@@ -137,7 +139,7 @@ public class Strategy1 {
                     }
                 }
             } catch (Exception e) {
-                LOGGER.info("businessone Exception", e);
+                LOGGER.error("businessone Exception", e);
             }
         }
     }
@@ -163,20 +165,21 @@ public class Strategy1 {
         try {
             huobiDepth = huobiDepthFuture.get();
         } catch (InterruptedException e) {
-            LOGGER.info("huobi depth InterruptedException.baseCoin:{},quoteCoin:{}", baseCoin, quoteCoin, e);
+            LOGGER.error("huobi depth InterruptedException.baseCoin:{},quoteCoin:{}", baseCoin, quoteCoin, e);
         } catch (ExecutionException e) {
-            LOGGER.info("huobi depth ExecutionException.baseCoin:{},quoteCoin:{}", baseCoin, quoteCoin, e);
+            LOGGER.error("huobi depth ExecutionException.baseCoin:{},quoteCoin:{}", baseCoin, quoteCoin, e);
         }
 
         try {
             binanceDepth = binanceDepthFuture.get();
         } catch (InterruptedException e) {
-            LOGGER.info("binance depth InterruptedException.baseCoin:{},quoteCoin:{}", baseCoin, quoteCoin, e);
+            LOGGER.error("binance depth InterruptedException.baseCoin:{},quoteCoin:{}", baseCoin, quoteCoin, e);
         } catch (ExecutionException e) {
-            LOGGER.info("binance depth InterruptedException.baseCoin:{},quoteCoin:{}", baseCoin, quoteCoin, e);
+            LOGGER.error("binance depth InterruptedException.baseCoin:{},quoteCoin:{}", baseCoin, quoteCoin, e);
         }
 
         if (huobiDepth == null || binanceDepth == null) {
+            LOGGER.info("huobiDepth || binanceDepth is null");
             //continue next round
             return;
         }
@@ -202,11 +205,11 @@ public class Strategy1 {
             + huobiAsk1.getPrice() * mAsyncRestClientPlatformA.getTradeFee());
 
         if (profit1 > profitThreshold) {
-            LOGGER.info("profit:{},huobiBid:{},binanceAsk:{}", profit1, huobiBid1, binanceAsk1);
+            LOGGER.info("INFO-profit:{},huobiBid:{},binanceAsk:{}", profit1, huobiBid1, binanceAsk1);
         }
 
         if (profit2 > profitThreshold) {
-            LOGGER.info("profit2:{},binanceBid:{},huobiAsk:{}", profit2, binanceBid1, huobiAsk1);
+            LOGGER.info("INFO-profit2:{},binanceBid:{},huobiAsk:{}", profit2, binanceBid1, huobiAsk1);
         }
 
         businessCount++;

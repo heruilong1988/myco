@@ -13,6 +13,65 @@
     </appender>
 
 
+    <appender name="IOTAROLLING" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>./logs/iotausdt.txt</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+            <!-- rollover daily -->
+            <fileNamePattern>./logs/bak/iotausdt-%d{yyyy-MM-dd}.%i.txt</fileNamePattern>
+            <!-- each file should be at most 20MB, keep 60 days worth of history, but at most 20GB -->
+            <maxFileSize>20MB</maxFileSize>
+            <maxHistory>60</maxHistory>
+            <totalSizeCap>20GB</totalSizeCap>
+        </rollingPolicy>
+        <encoder>
+            <pattern>%d{yyyy/MM/ddHH:mm:ss.SSS} %-5level %logger{36} - %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <appender name="ADAROLLING" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>./logs/adausdt.txt</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+            <!-- rollover daily -->
+            <fileNamePattern>./logs/bak/adausdt-%d{yyyy-MM-dd}.%i.txt</fileNamePattern>
+            <!-- each file should be at most 20MB, keep 60 days worth of history, but at most 20GB -->
+            <maxFileSize>20MB</maxFileSize>
+            <maxHistory>60</maxHistory>
+            <totalSizeCap>20GB</totalSizeCap>
+        </rollingPolicy>
+        <encoder>
+            <pattern>%d{yyyy/MM/ddHH:mm:ss.SSS} %-5level %logger{36} - %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <appender name="QTUMROLLING" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>./logs/qtumusdt.txt</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+            <!-- rollover daily -->
+            <fileNamePattern>./logs/bak/qtumusdt-%d{yyyy-MM-dd}.%i.txt</fileNamePattern>
+            <!-- each file should be at most 20MB, keep 60 days worth of history, but at most 20GB -->
+            <maxFileSize>20MB</maxFileSize>
+            <maxHistory>60</maxHistory>
+            <totalSizeCap>20GB</totalSizeCap>
+        </rollingPolicy>
+        <encoder>
+            <pattern>%d{yyyy/MM/ddHH:mm:ss.SSS} %-5level %logger{36} - %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <appender name="VETROLLING" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>./logs/vetusdt.txt</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+            <!-- rollover daily -->
+            <fileNamePattern>./logs/bak/vetusdt-%d{yyyy-MM-dd}.%i.txt</fileNamePattern>
+            <!-- each file should be at most 20MB, keep 60 days worth of history, but at most 20GB -->
+            <maxFileSize>20MB</maxFileSize>
+            <maxHistory>60</maxHistory>
+            <totalSizeCap>20GB</totalSizeCap>
+        </rollingPolicy>
+        <encoder>
+            <pattern>%d{yyyy/MM/ddHH:mm:ss.SSS} %-5level %logger{36} - %msg%n</pattern>
+        </encoder>
+    </appender>
 
     <appender name="BTCROLLING" class="ch.qos.logback.core.rolling.RollingFileAppender">
         <file>./logs/btcusdt.txt</file>
@@ -180,6 +239,22 @@
 
     <logger name="eos">
         <appender-ref ref="EOSROLLING" />
+    </logger>
+
+    <logger name="vet">
+        <appender-ref ref="VETROLLING" />
+    </logger>
+
+    <logger name="qtum">
+        <appender-ref ref="QTUMROLLING" />
+    </logger>
+
+    <logger name="ada">
+        <appender-ref ref="ADAROLLING" />
+    </logger>
+
+    <logger name="iota">
+        <appender-ref ref="IOTAROLLING" />
     </logger>
 
     <logger name="eos.Order">

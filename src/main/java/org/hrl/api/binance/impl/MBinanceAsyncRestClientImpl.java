@@ -63,13 +63,13 @@ public class MBinanceAsyncRestClientImpl implements MAsyncRestClient{
 
     public MBinanceAsyncRestClientImpl(BinanceApiRestClient binanceApiRestClient) {
         this.binanceApiRestClient = binanceApiRestClient;
-        this.executorService = Executors.newFixedThreadPool(100);
+        this.executorService = Executors.newFixedThreadPool(1000);
     }
 
     public MBinanceAsyncRestClientImpl(String accesskey, String secretkey) {
         BinanceApiClientFactory factory = BinanceApiClientFactory.newInstance(accesskey, secretkey);
         this.binanceApiRestClient = factory.newRestClient();
-        this.executorService = Executors.newFixedThreadPool(100);
+        this.executorService = Executors.newFixedThreadPool(1000);
     }
 
     public FutureTask<MDepth> depth(String baseCoin, String quoteCoin){

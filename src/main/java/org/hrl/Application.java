@@ -27,7 +27,7 @@ import java.util.concurrent.Executors;
 public class Application {
 
     private static String PRO_CONF_DIR_PATH =
-        System.getProperty("conf.dir", "src" + File.separator + "main" + File.separator + "resources");
+            System.getProperty("conf.dir", "src" + File.separator + "main" + File.separator + "resources");
 
     public static void main(String[] args) throws MalformedURLException {
 
@@ -66,15 +66,14 @@ public class Application {
 
         if (appConfig.isDataCollectEnabled()) {
             MultipleThreadStrategy1DataCollect multipleThreadStrategy1DataCollect = new MultipleThreadStrategy1DataCollect(
-                huoBiAsyncRestClient, mBinanceAsyncRestClient, appConfig.getBaseCoinArr().split(","), profitThreshold,
-                reqIntervalMillis);
+                    huoBiAsyncRestClient, mBinanceAsyncRestClient, appConfig.getBaseCoinArr().split(","), profitThreshold,
+                    reqIntervalMillis);
             multipleThreadStrategy1DataCollect.start();
-            System.out
-                .println("multipleTreadStrategy1DataCollect started.===============================================");
+            System.out.println("multipleTreadStrategy1DataCollect started.===============================================");
         } else {
 
             MultipleThreadStrategy1 multipleThreadStrategy1 = new MultipleThreadStrategy1(huoBiAsyncRestClient,
-                mBinanceAsyncRestClient, profitThreshold, reqIntervalMillis);
+                    mBinanceAsyncRestClient, profitThreshold, reqIntervalMillis);
             multipleThreadStrategy1.start();
             System.out.println("multipleTreadStrategy1 started.===============================================");
         }

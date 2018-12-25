@@ -22,7 +22,7 @@ public class MHuobiAsyncRestClient implements MAsyncRestClient {
 
     private String accountId;
 
-    ExecutorService executorService = Executors.newFixedThreadPool(100);
+    ExecutorService executorService = Executors.newFixedThreadPool(1000);
 
     ApiClient apiClient;
 
