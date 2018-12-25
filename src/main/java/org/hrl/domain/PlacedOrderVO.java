@@ -6,6 +6,7 @@ import org.hrl.api.huobi.task.QueryOrderTask;
 import org.hrl.api.req.MQueryOrderRequest;
 import org.hrl.api.rsp.MPlaceOrderRsp;
 import org.hrl.api.rsp.MQueryOrderRsp;
+import org.hrl.exception.QueryOrderException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -24,7 +25,11 @@ public class PlacedOrderVO {
 
     private MQueryOrderRsp mQueryOrderRsp;
 
-    private boolean finished;
+    //first time set to false
+    private boolean finished = false;
+
+    //first time set to zero
+    private double lastFieldQuantity = 0.0;
 
 
 
@@ -33,6 +38,15 @@ public class PlacedOrderVO {
         this.mAsyncRestClient = mAsyncRestClient;
         this.mPlaceOrderRsp = mPlaceOrderRsp;
         ORDERLOG = LoggerFactory.getLogger(profitableTradeVO.getBaseCoin() + ".Order");
+    }
+
+
+    public double getLastFieldQuantity() {
+        return lastFieldQuantity;
+    }
+
+    public void setLastFieldQuantity(double lastFieldQuantity) {
+        this.lastFieldQuantity = lastFieldQuantity;
     }
 
     public ProfitableTradeVO getProfitableTradeVO() {
@@ -75,7 +89,7 @@ public class PlacedOrderVO {
         this.finished = finished;
     }
 
-    public MQueryOrderRsp asyncQueryOrder() {
+    public MQueryOrderRsp asyncQueryOrder() throws QueryOrderException {
         if (mPlaceOrderRsp != null) {
             MQueryOrderRequest mQueryOrderRequest = new MQueryOrderRequest();
             mQueryOrderRequest.setOrderId(mPlaceOrderRsp.getOrderId());
@@ -85,11 +99,14 @@ public class PlacedOrderVO {
             FutureTask<MQueryOrderRsp> mQueryOrderRspFutureTask = mAsyncRestClient.queryOrder(mQueryOrderRequest);
             try {
                 MQueryOrderRsp mQueryOrderRsp = mQueryOrderRspFutureTask.get();
+                this.mQueryOrderRsp = mQueryOrderRsp;
                 return mQueryOrderRsp;
             } catch (InterruptedException e) {
                 ORDERLOG.info("fail query placedOrder. placedOrderVO:{}", this);
+                throw new QueryOrderException(e);
             } catch (ExecutionException e) {
                 ORDERLOG.info("fail query placedOrder. placedOrderVO:{}", this);
+                throw new QueryOrderException(e);
             }
         }
         return null;
@@ -98,10 +115,13 @@ public class PlacedOrderVO {
     @Override
     public String toString() {
         return MoreObjects.toStringHelper(this)
-                .add("mAsyncRestClient", mAsyncRestClient)
-                .add("mPlaceOrderRsp", mPlaceOrderRsp)
-                .add("mQueryOrderRsp", mQueryOrderRsp)
-                .toString();
+            .add("mAsyncRestClient", mAsyncRestClient)
+            .add("profitableTradeVO", profitableTradeVO)
+            .add("mPlaceOrderRsp", mPlaceOrderRsp)
+            .add("mQueryOrderRsp", mQueryOrderRsp)
+            .add("finished", finished)
+            .add("lastFieldQuantity", lastFieldQuantity)
+            .toString();
     }
 }
 

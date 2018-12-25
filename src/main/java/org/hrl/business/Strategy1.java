@@ -1,12 +1,18 @@
 package org.hrl.business;
 
 import com.google.common.base.MoreObjects;
+import java.util.Map;
 import org.hrl.api.MAsyncRestClient;
+import org.hrl.api.req.MGetBalanceRequest;
 import org.hrl.api.rsp.*;
 import org.hrl.domain.PlacedOrderPairVO;
 import org.hrl.domain.PlacedOrderVO;
 import org.hrl.domain.ProfitableTradePairVO;
 import org.hrl.domain.ProfitableTradeVO;
+import org.hrl.exception.GetBalanceException;
+import org.hrl.exception.GetDepthException;
+import org.hrl.exception.PlaceOrderException;
+import org.hrl.exception.QueryOrderException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -15,7 +21,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.FutureTask;
-import java.util.concurrent.TimeUnit;
 
 public class Strategy1 {
 
@@ -34,21 +39,85 @@ public class Strategy1 {
     private String baseCoin;
     private String quoteCoin;
 
-    private double maxTradeQty = 150;
+    private double maxTradeQtyQuoteCoin = 150; //usdt
+
     private int maxInprogressOrderPairNum = 10;
 
     private boolean stop = false;
     private long firstOrderRoundCount = 0;
 
-    public Strategy1(MAsyncRestClient mAsyncRestClientPlatformA, MAsyncRestClient mAsyncRestClientPlatformB, String baseCoin, String quoteCoin) {
+    //config
+    private double profitThreshold = 0.002;
+    //config
+    private long reqIntervalMillis = 200;
+
+    private double accountBalanceQuoteCoinPlatformA = 0.0;
+    private double accountBalanceBaseCoinPlatformA = 0.0;
+
+    private double accountBalanceQuoteCoinPlatformB = 0.0;
+    private double accountBalanceBaseCoinPlatformB = 0.0;
+
+    private boolean notEnoughBaseCoinBalancePlatformA = false;
+    private boolean notEnoughQuoteCoinBalancePlatformA = false;
+
+    private boolean notEnoughtBaseCoinBalancePlatformB = false;
+    private boolean notEnoughQuoteCoinBalancePlatformB = false;
+
+    public Strategy1(MAsyncRestClient mAsyncRestClientPlatformA, MAsyncRestClient mAsyncRestClientPlatformB,
+        String baseCoin, String quoteCoin,double profitThreshold, long reqIntervalMillis) {
         this.mAsyncRestClientPlatformA = mAsyncRestClientPlatformA;
         this.mAsyncRestClientPlatformB = mAsyncRestClientPlatformB;
         this.baseCoin = baseCoin;
         this.quoteCoin = quoteCoin;
+        this.profitThreshold = profitThreshold;
+        this.reqIntervalMillis = reqIntervalMillis;
 
         LOGGER = LoggerFactory.getLogger(baseCoin);
         ORDERLOGGER = LoggerFactory.getLogger(baseCoin + ".Order");
         LOGGER.info(this.toString());
+    }
+
+    public void initAccountBalance() throws GetBalanceException {
+        MGetBalanceRequest mGetBalanceRequest = new MGetBalanceRequest();
+        //mGetBalanceRequest.setAccountId();
+        mGetBalanceRequest.setBaseCoin(baseCoin);
+        mGetBalanceRequest.setQuoteCoin(quoteCoin);
+
+        FutureTask<MGetBalanceRsp> balanceFuturePlatformA = mAsyncRestClientPlatformA.getBalance(mGetBalanceRequest);
+        FutureTask<MGetBalanceRsp> balanceFuturePlatformB = mAsyncRestClientPlatformB.getBalance(mGetBalanceRequest);
+
+        try {
+            MGetBalanceRsp balanceRspPlatformA = balanceFuturePlatformA.get();
+            Map<String, MCurrencyBalance> currencyBalanceMapA = balanceRspPlatformA.getmBalance()
+                .getmCurrencyBalanceMap();
+            accountBalanceBaseCoinPlatformA = currencyBalanceMapA.get(baseCoin).getTradeBalance();
+            accountBalanceQuoteCoinPlatformA = currencyBalanceMapA.get(quoteCoin).getTradeBalance();
+        } catch (InterruptedException e) {
+            LOGGER.info("fail to get balance.", e);
+            e.printStackTrace();
+            throw new GetBalanceException(e);
+        } catch (ExecutionException e) {
+            LOGGER.info("fail to get balance.", e);
+            e.printStackTrace();
+            throw new GetBalanceException(e);
+        }
+
+        try {
+            MGetBalanceRsp balanceRspPlatformB = balanceFuturePlatformB.get();
+            Map<String, MCurrencyBalance> currencyBalanceMapB = balanceRspPlatformB.getmBalance()
+                .getmCurrencyBalanceMap();
+            accountBalanceBaseCoinPlatformB = currencyBalanceMapB.get(baseCoin).getTradeBalance();
+            accountBalanceQuoteCoinPlatformB = currencyBalanceMapB.get(quoteCoin).getTradeBalance();
+
+        } catch (InterruptedException e) {
+            LOGGER.info("fail to get balance.", e);
+            e.printStackTrace();
+            throw new GetBalanceException(e);
+        } catch (ExecutionException e) {
+            LOGGER.info("fail to get balance.", e);
+            e.printStackTrace();
+            throw new GetBalanceException(e);
+        }
 
     }
 
@@ -57,15 +126,12 @@ public class Strategy1 {
             try {
                 long startNs = System.nanoTime();
                 calcDepthProfit();
-                long duration = System.nanoTime() - startNs;
 
-                //1秒2次
-                if (duration < TimeUnit.SECONDS.toNanos(1) / 2) {
+                long sleepMs = calcSleepMillis(startNs);
+                if (sleepMs > 0) {
                     try {
-                        long sleepTime = (TimeUnit.SECONDS.toNanos(1) / 2 - duration) / 1000000;
-
                         //System.out.println(sleepTime);
-                        Thread.sleep(sleepTime);
+                        Thread.sleep(sleepMs);
                     } catch (InterruptedException e) {
                         e.printStackTrace();
                     }
@@ -73,6 +139,17 @@ public class Strategy1 {
             } catch (Exception e) {
                 LOGGER.info("businessone Exception", e);
             }
+        }
+    }
+
+    private long calcSleepMillis(long startNs) {
+        long durationNs = System.nanoTime() - startNs;
+        long durationMs = durationNs / 1000000;
+        if (durationMs > reqIntervalMillis) {
+            //already exceed,no sleep
+            return 0;
+        } else {
+            return reqIntervalMillis - durationMs;
         }
     }
 
@@ -110,25 +187,25 @@ public class Strategy1 {
         List<PriceQtyPair> binanceAskList = binanceDepth.getAsks();
         List<PriceQtyPair> binanceBidList = binanceDepth.getBids();
 
-
         PriceQtyPair huobiBid1 = huobiBidList.get(0);
         PriceQtyPair binanceAsk1 = binanceAskList.get(0);
-
 
         PriceQtyPair huobiAsk1 = huobiAskList.get(0);
         PriceQtyPair binanceBid1 = binanceBidList.get(0);
 
         double priceDiff = huobiBid1.getPrice() - binanceAsk1.getPrice();
-        double profit1 = priceDiff - (huobiBid1.getPrice() * mAsyncRestClientPlatformA.getTradeFee() + binanceAsk1.getPrice() * mAsyncRestClientPlatformB.getTradeFee());
+        double profit1 = priceDiff - (huobiBid1.getPrice() * mAsyncRestClientPlatformA.getTradeFee()
+            + binanceAsk1.getPrice() * mAsyncRestClientPlatformB.getTradeFee());
 
         double priceDiff2 = binanceBid1.getPrice() - huobiAsk1.getPrice();
-        double profit2 = priceDiff2 - (binanceBid1.getPrice() * mAsyncRestClientPlatformB.getTradeFee() + huobiAsk1.getPrice() * mAsyncRestClientPlatformA.getTradeFee());
+        double profit2 = priceDiff2 - (binanceBid1.getPrice() * mAsyncRestClientPlatformB.getTradeFee()
+            + huobiAsk1.getPrice() * mAsyncRestClientPlatformA.getTradeFee());
 
-        if (profit1 > 0) {
+        if (profit1 > profitThreshold) {
             LOGGER.info("profit:{},huobiBid:{},binanceAsk:{}", profit1, huobiBid1, binanceAsk1);
         }
 
-        if (profit2 > 0) {
+        if (profit2 > profitThreshold) {
             LOGGER.info("profit2:{},binanceBid:{},huobiAsk:{}", profit2, binanceBid1, huobiAsk1);
         }
 
@@ -151,10 +228,12 @@ public class Strategy1 {
     public void firstOrderStrategy() {
         while (!stop) {
             try {
+                long startNs = System.nanoTime();
                 List<ProfitableTradePairVO> profitableTradePairVOList = calcProfit();
 
                 if (inProgressPlacedOrderPairVOList.size() < maxInprogressOrderPairNum) {
-                    List<PlacedOrderPairVO> placedOrderPairVOList = placeProfitableTradePairOrderList(profitableTradePairVOList);
+                    List<PlacedOrderPairVO> placedOrderPairVOList = placeProfitableTradePairOrderList(
+                        profitableTradePairVOList);
                     inProgressPlacedOrderPairVOList.addAll(placedOrderPairVOList);
                 }
 
@@ -165,17 +244,39 @@ public class Strategy1 {
                 ++firstOrderRoundCount;
 
                 if (firstOrderRoundCount % 100 == 0) {
-                    LOGGER.info("inprogressPlacedOrderSize:{},inprogressPlacedOrderList:{}", inProgressPlacedOrderPairVOList.size(), inProgressPlacedOrderPairVOList);
+                    LOGGER.info("inprogressPlacedOrderSize:{},inprogressPlacedOrderList:{}",
+                        inProgressPlacedOrderPairVOList.size(), inProgressPlacedOrderPairVOList);
                 }
+
+                long sleepMs = calcSleepMillis(startNs);
+                if (sleepMs > 0) {
+                    try {
+                        Thread.sleep(sleepMs);
+                    } catch (InterruptedException e) {
+                        LOGGER.info("sleep interrupted.", e);
+                    }
+                }
+            } catch (GetDepthException e1) {
+                LOGGER.info("fail to get depth, continue next round");
+            } catch (PlaceOrderException e) {
+                LOGGER.error("fail to place order, stop application", e);
+                stop = true;
+            } catch (QueryOrderException e) {
+                LOGGER.error("fail to query order", e);
             } catch (Exception e) {
                 LOGGER.info("fail firstOrderRound", e);
+                System.out.println("exception: exit system.");
+                stop = true;
             }
         }
+
+        LOGGER.info("exit system.");
+        System.out.println("exit system.");
 
     }
 
 
-    public void checkInprogressPlacedOrderPairList() {
+    public void checkInprogressPlacedOrderPairList() throws QueryOrderException {
         if (inProgressPlacedOrderPairVOList.isEmpty()) {
             ORDERLOGGER.info("inProgressPlacedOrderPairVOList is empty.");
             return;
@@ -186,8 +287,16 @@ public class Strategy1 {
         for (; iterator.hasNext(); ) {
             PlacedOrderPairVO placedOrderPairVO = iterator.next();
             PlacedOrderVO placedOrderVO1 = placedOrderPairVO.getPlacedOrderVO1();
+            PlacedOrderVO placedOrderVO2 = placedOrderPairVO.getPlacedOrderVO2();
+
+            updateOrderStatusAndAccountBalance(placedOrderVO1);
+            updateOrderStatusAndAccountBalance(placedOrderVO2);
+
+            /*
             if (!placedOrderVO1.isFinished()) {
                 MQueryOrderRsp mQueryOrderRsp1 = placedOrderVO1.asyncQueryOrder();
+
+
                 if (isOrderFinished(mQueryOrderRsp1.getState())) {
                     placedOrderVO1.setFinished(true);
                 }
@@ -200,6 +309,7 @@ public class Strategy1 {
                     placedOrderVO2.setFinished(true);
                 }
             }
+            */
 
             if (placedOrderVO1.isFinished() && placedOrderVO2.isFinished()) {
                 historyPlacedOrderPairVOList.add(placedOrderPairVO);
@@ -209,12 +319,62 @@ public class Strategy1 {
 
     }
 
+    private void updateOrderStatusAndAccountBalance(PlacedOrderVO placedOrderVO) throws QueryOrderException {
+        if (placedOrderVO != null && !placedOrderVO.isFinished()) {
+            MQueryOrderRsp mQueryOrderRsp1 = placedOrderVO.asyncQueryOrder();
+
+            updateAccountBalance(placedOrderVO);
+
+            if (isOrderFinished(mQueryOrderRsp1.getState())) {
+                placedOrderVO.setFinished(true);
+            }
+        }
+    }
+
+    private void updateAccountBalance(PlacedOrderVO placedOrderVO) {
+        if (placedOrderVO == null || placedOrderVO.getmQueryOrderRsp() == null) {
+            LOGGER.error("Cannot update account balance.NO queryOrderRsp");
+            return;
+        }
+
+        MQueryOrderRsp mQueryOrderRsp = placedOrderVO.getmQueryOrderRsp();
+        double newTradeQuantity =
+            Double.parseDouble(mQueryOrderRsp.getFieldQuantity()) - placedOrderVO.getLastFieldQuantity();
+        if (newTradeQuantity > 0) {
+            //there is new field quantity
+            double orderPrice = Double.parseDouble(mQueryOrderRsp.getPrice());
+            if (MOrderSide.buy.equals(mQueryOrderRsp.getSide())) {
+                //buy add more balance of baseCoin, decrease quoteCoin
+                if (placedOrderVO.getmAsyncRestClient() == this.mAsyncRestClientPlatformA) {
+                    //platformA
+                    accountBalanceBaseCoinPlatformA += newTradeQuantity;
+                    accountBalanceQuoteCoinPlatformA -= newTradeQuantity * orderPrice;
+                } else {
+                    accountBalanceBaseCoinPlatformB += newTradeQuantity;
+                    accountBalanceQuoteCoinPlatformB -= newTradeQuantity * orderPrice;
+                }
+            } else {
+                //sell , add quoteCoin, decrease baseCoin
+                if (placedOrderVO.getmAsyncRestClient() == this.mAsyncRestClientPlatformA) {
+                    //platformA
+                    accountBalanceQuoteCoinPlatformA += newTradeQuantity * orderPrice;
+                    accountBalanceBaseCoinPlatformA -= newTradeQuantity;
+                } else {
+                    accountBalanceQuoteCoinPlatformB += newTradeQuantity * orderPrice;
+                    accountBalanceBaseCoinPlatformB -= newTradeQuantity;
+                }
+
+            }
+        }
+
+    }
+
 
     /**
-     * @param profitableTradePairVOS
      * @return list of PlacedOrderPair, placedOrderVO will be null when place order encountering exception
      */
-    public List<PlacedOrderPairVO> placeProfitableTradePairOrderList(List<ProfitableTradePairVO> profitableTradePairVOS) {
+    public List<PlacedOrderPairVO> placeProfitableTradePairOrderList(
+        List<ProfitableTradePairVO> profitableTradePairVOS) throws PlaceOrderException {
 
         List<PlacedOrderPairVO> placedOrderPairVOList = new ArrayList<>();
 
@@ -227,33 +387,56 @@ public class Strategy1 {
             ProfitableTradeVO profitableTradeVO1 = profitableTradePairVO.getProfitableTradeVO1();
             ProfitableTradeVO profitableTradeVO2 = profitableTradePairVO.getProfitableTradeVO2();
 
-            FutureTask<MPlaceOrderRsp> profitableTradeRspFuture1 = profitableTradeVO1.asyncPlaceOrder();
-            FutureTask<MPlaceOrderRsp> profitbaleTradeRspFuture2 = profitableTradeVO2.asyncPlaceOrder();
+            //may not have enough balance of
+            FutureTask<MPlaceOrderRsp> profitableTradeRspFuture1 = placeTradeOrder(profitableTradeVO1);
+            //profitableTradeVO1.asyncPlaceOrder();
+            FutureTask<MPlaceOrderRsp> profitableTradeRspFuture2 = placeTradeOrder(profitableTradeVO2);
+            //profitableTradeVO2.asyncPlaceOrder();
 
             PlacedOrderVO placedOrderVO1 = null;
             MPlaceOrderRsp mPlaceOrderRsp1 = null;
-            try {
-                mPlaceOrderRsp1 = profitableTradeRspFuture1.get();
-                placedOrderVO1 = new PlacedOrderVO(profitableTradeVO1.getmAsyncRestClient(), profitableTradeVO1, mPlaceOrderRsp1);
-            } catch (InterruptedException e) {
-                LOGGER.info("fail place order.profitbaleTradeVO1:{},mPlaceOrderRsp1:{}", profitableTradeVO1, mPlaceOrderRsp1, e);
-            } catch (ExecutionException e) {
-                LOGGER.info("fail place order.profitbaleTradeVO1:{},mPlaceOrderRsp1:{}", profitableTradeVO1, mPlaceOrderRsp1, e);
+
+            if (profitableTradeRspFuture1 != null) {
+                try {
+                    mPlaceOrderRsp1 = profitableTradeRspFuture1.get();
+                    placedOrderVO1 = new PlacedOrderVO(profitableTradeVO1.getmAsyncRestClient(), profitableTradeVO1,
+                        mPlaceOrderRsp1);
+                } catch (InterruptedException e) {
+                    LOGGER.error("fail place order.profitbaleTradeVO1:{},mPlaceOrderRsp1:{}", profitableTradeVO1,
+                        mPlaceOrderRsp1, e);
+                    throw new PlaceOrderException(e);
+                } catch (ExecutionException e) {
+                    LOGGER.error("fail place order.profitbaleTradeVO1:{},mPlaceOrderRsp1:{}", profitableTradeVO1,
+                        mPlaceOrderRsp1, e);
+                    throw new PlaceOrderException(e);
+                }
             }
 
             PlacedOrderVO placedOrderVO2 = null;
             MPlaceOrderRsp mPlaceOrderRsp2 = null;
-            try {
-                mPlaceOrderRsp2 = profitbaleTradeRspFuture2.get();
-                placedOrderVO2 = new PlacedOrderVO(profitableTradeVO2.getmAsyncRestClient(), profitableTradeVO2, mPlaceOrderRsp2);
-            } catch (InterruptedException e) {
-                LOGGER.info("fail place order.profitbaleTradeVO2:{},mPlaceOrderRsp2:{}", profitableTradeVO2, mPlaceOrderRsp2, e);
-            } catch (ExecutionException e) {
-                LOGGER.info("fail place order.profitbaleTradeVO2:{},mPlaceOrderRsp2:{}", profitableTradeVO2, mPlaceOrderRsp2, e);
+
+            if (profitableTradeRspFuture2 != null) {
+                try {
+                    mPlaceOrderRsp2 = profitableTradeRspFuture2.get();
+                    placedOrderVO2 = new PlacedOrderVO(profitableTradeVO2.getmAsyncRestClient(), profitableTradeVO2,
+                        mPlaceOrderRsp2);
+                } catch (InterruptedException e) {
+                    LOGGER.error("fail place order.profitbaleTradeVO2:{},mPlaceOrderRsp2:{}", profitableTradeVO2,
+                        mPlaceOrderRsp2, e);
+                    throw new PlaceOrderException(e);
+                } catch (ExecutionException e) {
+                    LOGGER.error("fail place order.profitbaleTradeVO2:{},mPlaceOrderRsp2:{}", profitableTradeVO2,
+                        mPlaceOrderRsp2, e);
+                    throw new PlaceOrderException(e);
+                }
             }
 
-            PlacedOrderPairVO placedOrderPairVO = new PlacedOrderPairVO(placedOrderVO1, placedOrderVO2);
-            placedOrderPairVOList.add(placedOrderPairVO);
+            //placeOrderVO1, placeOrderVO2 may be null
+            if (placedOrderVO1 != null || placedOrderVO2 != null) {
+                PlacedOrderPairVO placedOrderPairVO = new PlacedOrderPairVO(placedOrderVO1, placedOrderVO2);
+                placedOrderPairVOList.add(placedOrderPairVO);
+            }
+
         }
 
         return placedOrderPairVOList;
@@ -261,7 +444,69 @@ public class Strategy1 {
     }
 
 
-    public List<ProfitableTradePairVO> calcProfit() {
+    /**
+     * place order if has enough balance
+     */
+    private FutureTask<MPlaceOrderRsp> placeTradeOrder(ProfitableTradeVO profitableTradeVO) {
+
+        FutureTask<MPlaceOrderRsp> profitableTradeRspFuture = null;
+
+        MAsyncRestClient mAsyncRestClient = profitableTradeVO.getmAsyncRestClient();
+        double price = profitableTradeVO.getPrice();
+        double quantity = profitableTradeVO.getQuantity();
+        if (mAsyncRestClient == mAsyncRestClientPlatformA) {
+            //platformA
+            if (MOrderSide.buy.equals(profitableTradeVO.getmOrderSide())) {
+                //buy base coin,
+                if (accountBalanceQuoteCoinPlatformA < price * quantity) {
+                    ORDERLOGGER.error(
+                        "not enough quoteCoin balance to place a buy trade order.platformA QuoteCoinBalance:{}, profitableTradeVO:{}",
+                        accountBalanceQuoteCoinPlatformA, profitableTradeVO);
+                    notEnoughQuoteCoinBalancePlatformA = true;
+                } else {
+                    profitableTradeRspFuture = profitableTradeVO.asyncPlaceOrder();
+                }
+            } else {
+                //sell base coin,
+                if (accountBalanceBaseCoinPlatformA < quantity) {
+                    ORDERLOGGER.error(
+                        "not enough baseCoin balance to place a sell trade order.platformA BaseCoinBalance:{}, profitableTradeVO:{}",
+                        accountBalanceBaseCoinPlatformA, profitableTradeVO);
+                    notEnoughBaseCoinBalancePlatformA = true;
+                } else {
+                    profitableTradeRspFuture = profitableTradeVO.asyncPlaceOrder();
+                }
+            }
+        } else {
+            //platformB
+            if (MOrderSide.buy.equals(profitableTradeVO.getmOrderSide())) {
+                //buy base coin
+                if (accountBalanceQuoteCoinPlatformB < price * quantity) {
+                    ORDERLOGGER.error(
+                        "not enough quoteCoin balance to place a buy trade order.platformB QuoteCoinBalance:{},profitableTradeVO:{}",
+                        accountBalanceQuoteCoinPlatformB, profitableTradeVO);
+                    notEnoughQuoteCoinBalancePlatformB = true;
+                } else {
+                    profitableTradeRspFuture = profitableTradeVO.asyncPlaceOrder();
+                }
+            } else {
+                //sell base coin
+                if (accountBalanceBaseCoinPlatformB < quantity) {
+                    ORDERLOGGER.error(
+                        "not enough baseCoin balance to place a sell trade order.platformB BaseCoinBalance:{}, profitableTradeVO:{}",
+                        accountBalanceBaseCoinPlatformB, profitableTradeVO);
+                    notEnoughtBaseCoinBalancePlatformB = true;
+                } else {
+                    profitableTradeRspFuture = profitableTradeVO.asyncPlaceOrder();
+                }
+            }
+        }
+
+        return profitableTradeRspFuture;
+
+    }
+
+    public List<ProfitableTradePairVO> calcProfit() throws GetDepthException {
         List<ProfitableTradePairVO> profitableTradePairVOS = new ArrayList<>();
 
         FutureTask<MDepth> huobiDepthFuture = mAsyncRestClientPlatformA.depth(baseCoin, quoteCoin);
@@ -272,17 +517,32 @@ public class Strategy1 {
         try {
             huobiDepth = huobiDepthFuture.get();
         } catch (InterruptedException e) {
-            LOGGER.info("platformA depth InterruptedException.baseCoin:{},quoteCoin:{},platformA:{}", baseCoin, quoteCoin, mAsyncRestClientPlatformA, e);
+            LOGGER
+                .error("platformA depth InterruptedException.baseCoin:{},quoteCoin:{},platformA:{}", baseCoin,
+                    quoteCoin,
+                    mAsyncRestClientPlatformA, e);
+            throw new GetDepthException(e);
         } catch (ExecutionException e) {
-            LOGGER.info("platformA depth ExecutionException.baseCoin:{},quoteCoin:{},platformA:{}", baseCoin, quoteCoin, mAsyncRestClientPlatformA, e);
+            LOGGER
+                .error("platformA depth ExecutionException.baseCoin:{},quoteCoin:{},platformA:{}", baseCoin, quoteCoin,
+                    mAsyncRestClientPlatformA, e);
+            throw new GetDepthException(e);
         }
 
         try {
             binanceDepth = binanceDepthFuture.get();
         } catch (InterruptedException e) {
-            LOGGER.info("platformB depth InterruptedException.baseCoin:{},quoteCoin:{},platformB:{}", baseCoin, quoteCoin, mAsyncRestClientPlatformB, e);
+            LOGGER
+                .error("platformB depth InterruptedException.baseCoin:{},quoteCoin:{},platformB:{}", baseCoin,
+                    quoteCoin,
+                    mAsyncRestClientPlatformB, e);
+            throw new GetDepthException(e);
         } catch (ExecutionException e) {
-            LOGGER.info("platformB depth InterruptedException.baseCoin:{},quoteCoin:{},platformB:{}", baseCoin, quoteCoin, mAsyncRestClientPlatformB, e);
+            LOGGER
+                .error("platformB depth InterruptedException.baseCoin:{},quoteCoin:{},platformB:{}", baseCoin,
+                    quoteCoin,
+                    mAsyncRestClientPlatformB, e);
+            throw new GetDepthException(e);
         }
 
         if (huobiDepth == null || binanceDepth == null) {
@@ -296,49 +556,58 @@ public class Strategy1 {
         List<PriceQtyPair> binanceAskList = binanceDepth.getAsks();
         List<PriceQtyPair> binanceBidList = binanceDepth.getBids();
 
-
         PriceQtyPair huobiBid1 = huobiBidList.get(0);
         PriceQtyPair binanceAsk1 = binanceAskList.get(0);
-
 
         PriceQtyPair huobiAsk1 = huobiAskList.get(0);
         PriceQtyPair binanceBid1 = binanceBidList.get(0);
 
         double priceDiff = huobiBid1.getPrice() - binanceAsk1.getPrice();
-        double profit1 = priceDiff - (huobiBid1.getPrice() * mAsyncRestClientPlatformA.getTradeFee() + binanceAsk1.getPrice() * mAsyncRestClientPlatformB.getTradeFee());
+        double profit1 = priceDiff - (huobiBid1.getPrice() * mAsyncRestClientPlatformA.getTradeFee()
+            + binanceAsk1.getPrice() * mAsyncRestClientPlatformB.getTradeFee());
 
-        if (profit1 > 0) {
+        if (profit1 > profitThreshold) {
 
             double tradeAskPrice = huobiBid1.getPrice();
-            double tradeQuantity = calcMinQuantity(huobiBid1, binanceAsk1, maxTradeQty);
-            ProfitableTradeVO profitableTradeVO = new ProfitableTradeVO(mAsyncRestClientPlatformA, baseCoin, quoteCoin, tradeAskPrice, tradeQuantity, MOrderSide.sell, MOrderType.limit);
+            double tradeQuantity = calcMinQuantity(huobiBid1, binanceAsk1, maxTradeQtyQuoteCoin);
+            ProfitableTradeVO profitableTradeVO = new ProfitableTradeVO(mAsyncRestClientPlatformA, baseCoin, quoteCoin,
+                tradeAskPrice, tradeQuantity, MOrderSide.sell, MOrderType.limit);
 
             double tradeBidPrice = binanceAsk1.getPrice();
-            ProfitableTradeVO profitableTradeVO1 = new ProfitableTradeVO(mAsyncRestClientPlatformB, baseCoin, quoteCoin, tradeBidPrice, tradeQuantity, MOrderSide.buy, MOrderType.limit);
+            ProfitableTradeVO profitableTradeVO1 = new ProfitableTradeVO(mAsyncRestClientPlatformB, baseCoin, quoteCoin,
+                tradeBidPrice, tradeQuantity, MOrderSide.buy, MOrderType.limit);
 
-            ProfitableTradePairVO profitableTradePairVO = new ProfitableTradePairVO(profitableTradeVO, profitableTradeVO1);
+            ProfitableTradePairVO profitableTradePairVO = new ProfitableTradePairVO(profitableTradeVO,
+                profitableTradeVO1);
 
             profitableTradePairVOS.add(profitableTradePairVO);
 
-            LOGGER.info("profit:{},platformA-Bid:{},platformB-Ask:{},platformA:{},platformB:{}", profit1, huobiBid1, binanceAsk1, mAsyncRestClientPlatformA, mAsyncRestClientPlatformB);
+            LOGGER
+                .info("INFO-profit:{},platformA-Bid:{},platformB-Ask:{},platformA:{},platformB:{}", profit1, huobiBid1,
+                    binanceAsk1, mAsyncRestClientPlatformA, mAsyncRestClientPlatformB);
         }
 
         double priceDiff2 = binanceBid1.getPrice() - huobiAsk1.getPrice();
-        double profit2 = priceDiff2 - (binanceBid1.getPrice() * mAsyncRestClientPlatformB.getTradeFee() + huobiAsk1.getPrice() * mAsyncRestClientPlatformA.getTradeFee());
+        double profit2 = priceDiff2 - (binanceBid1.getPrice() * mAsyncRestClientPlatformB.getTradeFee()
+            + huobiAsk1.getPrice() * mAsyncRestClientPlatformA.getTradeFee());
 
-        if (profit2 > 0) {
+        if (profit2 > profitThreshold) {
 
             double tradeAskPrice = binanceBid1.getPrice();
-            double tradeQuantity = calcMinQuantity(binanceBid1, huobiAsk1, maxTradeQty);
-            ProfitableTradeVO profitableTradeVO = new ProfitableTradeVO(mAsyncRestClientPlatformB, baseCoin, quoteCoin, tradeAskPrice, tradeQuantity, MOrderSide.sell, MOrderType.limit);
+            double tradeQuantity = calcMinQuantity(binanceBid1, huobiAsk1, maxTradeQtyQuoteCoin);
+            ProfitableTradeVO profitableTradeVO = new ProfitableTradeVO(mAsyncRestClientPlatformB, baseCoin, quoteCoin,
+                tradeAskPrice, tradeQuantity, MOrderSide.sell, MOrderType.limit);
 
             double tradeBidPrice = huobiAsk1.getPrice();
-            ProfitableTradeVO profitableTradeVO1 = new ProfitableTradeVO(mAsyncRestClientPlatformA, baseCoin, quoteCoin, tradeBidPrice, tradeQuantity, MOrderSide.buy, MOrderType.limit);
+            ProfitableTradeVO profitableTradeVO1 = new ProfitableTradeVO(mAsyncRestClientPlatformA, baseCoin, quoteCoin,
+                tradeBidPrice, tradeQuantity, MOrderSide.buy, MOrderType.limit);
 
-            ProfitableTradePairVO profitableTradePairVO = new ProfitableTradePairVO(profitableTradeVO, profitableTradeVO1);
+            ProfitableTradePairVO profitableTradePairVO = new ProfitableTradePairVO(profitableTradeVO,
+                profitableTradeVO1);
             profitableTradePairVOS.add(profitableTradePairVO);
 
-            LOGGER.info("profit2:{},platformB-Bid:{},platformA-Ask:{},platformA:{},platformB:{}", profit2, binanceBid1, huobiAsk1, mAsyncRestClientPlatformA, mAsyncRestClientPlatformB);
+            LOGGER.info("INFO-profit2:{},platformB-Bid:{},platformA-Ask:{},platformA:{},platformB:{}", profit2,
+                binanceBid1, huobiAsk1, mAsyncRestClientPlatformA, mAsyncRestClientPlatformB);
         }
 
         businessCount++;
@@ -347,8 +616,11 @@ public class Strategy1 {
         }
 
         if (businessCount % 1000 == 0) {
-            LOGGER.info("DEBUG:profit:{},platformA-Bid:{},platformB-Ask:{},platformA:{},platformB:{}", profit1, huobiBid1, binanceAsk1, mAsyncRestClientPlatformA, mAsyncRestClientPlatformB);
-            LOGGER.info("DEBUG:profit2:{},platformB-Bid:{},platformA-Ask:{},platformA:{},platformB:{}", profit2, binanceBid1, huobiAsk1, mAsyncRestClientPlatformA, mAsyncRestClientPlatformB);
+            LOGGER
+                .info("DEBUG:profit:{},platformA-Bid:{},platformB-Ask:{},platformA:{},platformB:{}", profit1, huobiBid1,
+                    binanceAsk1, mAsyncRestClientPlatformA, mAsyncRestClientPlatformB);
+            LOGGER.info("DEBUG:profit2:{},platformB-Bid:{},platformA-Ask:{},platformA:{},platformB:{}", profit2,
+                binanceBid1, huobiAsk1, mAsyncRestClientPlatformA, mAsyncRestClientPlatformB);
         }
 
         return profitableTradePairVOS;
@@ -362,7 +634,8 @@ public class Strategy1 {
     }
 
     public boolean isOrderFinished(MOrderStatus mOrderStatus) {
-        if (mOrderStatus == null || MOrderStatus.NEW.equals(mOrderStatus) || MOrderStatus.PARTIALLY_FILLED.equals(mOrderStatus)) {
+        if (mOrderStatus == null || MOrderStatus.NEW.equals(mOrderStatus) || MOrderStatus.PARTIALLY_FILLED
+            .equals(mOrderStatus)) {
             return false;
         }
 
@@ -373,12 +646,23 @@ public class Strategy1 {
     @Override
     public String toString() {
         return MoreObjects.toStringHelper(this)
-                .add("mAsyncRestClientPlatformA", mAsyncRestClientPlatformA)
-                .add("mAsyncRestClientPlatformB", mAsyncRestClientPlatformB)
-                .add("baseCoin", baseCoin)
-                .add("quoteCoin", quoteCoin)
-                .toString();
+            .add("businessCount", businessCount)
+            .add("inProgressPlacedOrderPairVOList", inProgressPlacedOrderPairVOList)
+            .add("historyPlacedOrderPairVOList", historyPlacedOrderPairVOList)
+            .add("mAsyncRestClientPlatformA", mAsyncRestClientPlatformA)
+            .add("mAsyncRestClientPlatformB", mAsyncRestClientPlatformB)
+            .add("baseCoin", baseCoin)
+            .add("quoteCoin", quoteCoin)
+            .add("maxTradeQtyQuoteCoin", maxTradeQtyQuoteCoin)
+            .add("maxInprogressOrderPairNum", maxInprogressOrderPairNum)
+            .add("stop", stop)
+            .add("firstOrderRoundCount", firstOrderRoundCount)
+            .add("profitThreshold", profitThreshold)
+            .add("reqIntervalMillis", reqIntervalMillis)
+            .add("accountBalanceQuoteCoinPlatformA", accountBalanceQuoteCoinPlatformA)
+            .add("accountBalanceBaseCoinPlatformA", accountBalanceBaseCoinPlatformA)
+            .add("accountBalanceQuoteCoinPlatformB", accountBalanceQuoteCoinPlatformB)
+            .add("accountBalanceBaseCoinPlatformB", accountBalanceBaseCoinPlatformB)
+            .toString();
     }
-
-
 }

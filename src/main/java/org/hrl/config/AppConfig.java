@@ -27,6 +27,27 @@ public class AppConfig {
     @Value("${baseCoinArr}")
     private String baseCoinArr;
 
+    @Value("${profit-threshold}")
+    private double profitThreshold;
+
+    @Value("${req-interval-millis}")
+    private long reqIntervalMillis;
+
+    public long getReqIntervalMillis() {
+        return reqIntervalMillis;
+    }
+
+    public void setReqIntervalMillis(long reqIntervalMillis) {
+        this.reqIntervalMillis = reqIntervalMillis;
+    }
+
+    public double getProfitThreshold() {
+        return profitThreshold;
+    }
+
+    public void setProfitThreshold(double profitThreshold) {
+        this.profitThreshold = profitThreshold;
+    }
 
     public boolean isDataCollectEnabled() {
         return dataCollectEnabled;

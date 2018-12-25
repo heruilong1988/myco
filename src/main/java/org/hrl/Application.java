@@ -27,18 +27,18 @@ import java.util.concurrent.Executors;
 public class Application {
 
     private static String PRO_CONF_DIR_PATH =
-            System.getProperty("conf.dir", "src" + File.separator + "main" + File.separator + "resources");
+        System.getProperty("conf.dir", "src" + File.separator + "main" + File.separator + "resources");
 
     public static void main(String[] args) throws MalformedURLException {
 
-        ClassLoader loader = new URLClassLoader(new URL[] { new File(PRO_CONF_DIR_PATH).toURI().toURL() });
+        ClassLoader loader = new URLClassLoader(new URL[]{new File(PRO_CONF_DIR_PATH).toURI().toURL()});
         Thread.currentThread().setContextClassLoader(loader);
 
-        ConfigurableApplicationContext applicationContext =  SpringApplication.run(Application.class, args);
+        ConfigurableApplicationContext applicationContext = SpringApplication.run(Application.class, args);
 
         AppConfig appConfig = applicationContext.getBean(AppConfig.class);
 
-        if(appConfig.isProxyEnabled()) {
+        if (appConfig.isProxyEnabled()) {
             System.setProperty("https.proxyHost", "localhost");
             System.setProperty("https.proxyPort", "1080");
         }
@@ -52,28 +52,34 @@ public class Application {
 
         String API_KEY = properties.getProperty("huobi-accesskey");
         String API_SECRET = properties.getProperty("huobi-secretkey");
-        MAsyncRestClient huoBiAsyncRestClient  = new MHuobiAsyncRestClient(API_KEY,API_SECRET);
+        MAsyncRestClient huoBiAsyncRestClient = new MHuobiAsyncRestClient(API_KEY, API_SECRET);
 
         String BINANCE_API_KEY = properties.getProperty("binance-accesskey");
         String BINANCE_API_SECRET = properties.getProperty("binance-secretkey");
 
         BinanceApiClientFactory factory = BinanceApiClientFactory.newInstance(BINANCE_API_KEY, BINANCE_API_SECRET);
-        BinanceApiRestClient binanceApiRestClient  = factory.newRestClient();
+        BinanceApiRestClient binanceApiRestClient = factory.newRestClient();
         MAsyncRestClient mBinanceAsyncRestClient = new MBinanceAsyncRestClientImpl(binanceApiRestClient);
 
+        double profitThreshold = appConfig.getProfitThreshold();
+        long reqIntervalMillis = appConfig.getReqIntervalMillis();
 
-        if(appConfig.isDataCollectEnabled()) {
-            MultipleThreadStrategy1DataCollect multipleThreadStrategy1DataCollect = new MultipleThreadStrategy1DataCollect(huoBiAsyncRestClient,mBinanceAsyncRestClient, appConfig.getBaseCoinArr().split(","));
+        if (appConfig.isDataCollectEnabled()) {
+            MultipleThreadStrategy1DataCollect multipleThreadStrategy1DataCollect = new MultipleThreadStrategy1DataCollect(
+                huoBiAsyncRestClient, mBinanceAsyncRestClient, appConfig.getBaseCoinArr().split(","), profitThreshold,
+                reqIntervalMillis);
             multipleThreadStrategy1DataCollect.start();
-            System.out.println("multipleTreadStrategy1DataCollect started.===============================================");
+            System.out
+                .println("multipleTreadStrategy1DataCollect started.===============================================");
         } else {
 
-            MultipleThreadStrategy1 multipleThreadStrategy1 = new MultipleThreadStrategy1(huoBiAsyncRestClient, mBinanceAsyncRestClient);
+            MultipleThreadStrategy1 multipleThreadStrategy1 = new MultipleThreadStrategy1(huoBiAsyncRestClient,
+                mBinanceAsyncRestClient, profitThreshold, reqIntervalMillis);
             multipleThreadStrategy1.start();
             System.out.println("multipleTreadStrategy1 started.===============================================");
         }
 
-        String serviceName ="twoplatformcoin";
+        String serviceName = "twoplatformcoin";
         System.out.println(String.format("The %s service started", serviceName));
 
     }
