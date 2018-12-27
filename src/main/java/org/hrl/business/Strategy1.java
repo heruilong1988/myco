@@ -1,14 +1,14 @@
 package org.hrl.business;
 
 import com.google.common.base.MoreObjects;
+
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.Map;
 import org.hrl.api.MAsyncRestClient;
 import org.hrl.api.req.MGetBalanceRequest;
 import org.hrl.api.rsp.*;
-import org.hrl.domain.PlacedOrderPairVO;
-import org.hrl.domain.PlacedOrderVO;
-import org.hrl.domain.ProfitableTradePairVO;
-import org.hrl.domain.ProfitableTradeVO;
+import org.hrl.domain.*;
 import org.hrl.exception.GetBalanceException;
 import org.hrl.exception.GetDepthException;
 import org.hrl.exception.PlaceOrderException;
@@ -63,6 +63,12 @@ public class Strategy1 {
     private boolean notEnoughtBaseCoinBalancePlatformB = false;
     private boolean notEnoughQuoteCoinBalancePlatformB = false;
 
+    private ExchangeInfo exchangeInfoPlatformA;
+    private ExchangeInfo exchangeInfoPlatformB;
+
+    private int tradeQuantityPrecision;
+
+    private int quantityPrecision;
     public Strategy1(MAsyncRestClient mAsyncRestClientPlatformA, MAsyncRestClient mAsyncRestClientPlatformB,
         String baseCoin, String quoteCoin, double profitThreshold, long reqIntervalMillis) {
         this.mAsyncRestClientPlatformA = mAsyncRestClientPlatformA;
@@ -71,6 +77,12 @@ public class Strategy1 {
         this.quoteCoin = quoteCoin;
         this.profitThreshold = profitThreshold;
         this.reqIntervalMillis = reqIntervalMillis;
+
+
+        exchangeInfoPlatformA = mAsyncRestClientPlatformA.getExchangeInfo(baseCoin, quoteCoin);
+        exchangeInfoPlatformB = mAsyncRestClientPlatformB.getExchangeInfo(baseCoin, quoteCoin);
+
+        tradeQuantityPrecision = Math.min(exchangeInfoPlatformA.getQuantityPrecision(), exchangeInfoPlatformB.getQuantityPrecision());
 
         LOGGER = LoggerFactory.getLogger(baseCoin);
         ORDERLOGGER = LoggerFactory.getLogger(baseCoin + ".Order");
@@ -636,7 +648,12 @@ public class Strategy1 {
         double minPairQty = Math.min(pair1.getQty(), pair2.getQty());
         double maxTradeQtyBaseCoin = maxTradeQtyQuoteCoin / ((pair1.getPrice() + pair2.getPrice()) / 2.0);
         double minQty = Math.min(minPairQty, maxTradeQtyBaseCoin);
-        return minQty;
+
+        BigDecimal bigDecimal = new BigDecimal(minQty);
+        bigDecimal.setScale(tradeQuantityPrecision, RoundingMode.UP);
+
+        double returnQty = bigDecimal.doubleValue();
+        return returnQty;
     }
 
     public boolean isOrderFinished(MOrderStatus mOrderStatus) {

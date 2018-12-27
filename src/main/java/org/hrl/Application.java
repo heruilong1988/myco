@@ -76,7 +76,7 @@ public class Application {
 */
         BinanceApiClientFactory factory = BinanceApiClientFactory.newInstance(BINANCE_API_KEY, BINANCE_API_SECRET);
         BinanceApiRestClient binanceApiRestClient = factory.newRestClient();
-        MAsyncRestClient mBinanceAsyncRestClient = new MBinanceAsyncRestClientImpl(binanceApiRestClient);
+        MAsyncRestClient mBinanceAsyncRestClient = new MBinanceAsyncRestClientImpl(BINANCE_API_KEY, BINANCE_API_SECRET);
 
         double profitThreshold = appConfig.getProfitThreshold();
         long reqIntervalMillis = appConfig.getReqIntervalMillis();

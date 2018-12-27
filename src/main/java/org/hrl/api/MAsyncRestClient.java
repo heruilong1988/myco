@@ -5,7 +5,10 @@ import org.hrl.api.req.MGetBalanceRequest;
 import org.hrl.api.req.MPlaceOrderRequest;
 import org.hrl.api.req.MQueryOrderRequest;
 import org.hrl.api.rsp.*;
+import org.hrl.domain.ExchangeInfo;
+import org.hrl.domain.PriceQuantityPrecisionPair;
 
+import java.util.Map;
 import java.util.concurrent.FutureTask;
 
 /**
@@ -27,5 +30,6 @@ public interface MAsyncRestClient {
 
     FutureTask<MGetBalanceRsp> getBalance(MGetBalanceRequest mGetBalanceRequest);
 
+    ExchangeInfo getExchangeInfo(String baseCoin, String quoteCoin);
     double getTradeFee();
 }

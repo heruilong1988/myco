@@ -2,6 +2,7 @@ package org.hrl.api.huobi.client;
 
 import java.util.HashMap;
 import java.util.Map;
+
 import org.hrl.api.MAsyncRestClient;
 import org.hrl.api.huobi.response.*;
 import org.hrl.api.huobi.task.*;
@@ -15,17 +16,24 @@ import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.FutureTask;
+
+import org.hrl.domain.ExchangeInfo;
 import org.hrl.domain.PriceQuantityPrecisionPair;
 import org.json.JSONArray;
 import org.json.JSONObject;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Component;
+
+import javax.annotation.PostConstruct;
 
 /*
 限制频率为10秒100次（单个APIKEY维度限制，建议行情API访问也要加上签名，否则限频会更严格
  */
 
+@Component
 public class MHuobiAsyncRestClient implements MAsyncRestClient {
 
-    private static Map<String, PriceQuantityPrecisionPair> symbolPrecisionMap = new HashMap<>();
+    private static Map<String, ExchangeInfo> symbolExchangeInfoMap = new HashMap<>();
 
     private String accountId;
 
@@ -37,7 +45,7 @@ public class MHuobiAsyncRestClient implements MAsyncRestClient {
     public final String accessKeySecret;
     public final String assetPassword;
 
-    public MHuobiAsyncRestClient(String accessKeyId, String accessKeySecret) {
+    public MHuobiAsyncRestClient(@Value("${huobi-accesskey}") String accessKeyId, @Value(("${huobi-secretkey}")) String accessKeySecret) {
         this.accessKeyId = accessKeyId;
         this.accessKeySecret = accessKeySecret;
         this.assetPassword = null;
@@ -45,6 +53,7 @@ public class MHuobiAsyncRestClient implements MAsyncRestClient {
         this.apiClient = new ApiClient(accessKeyId, accessKeySecret);
     }
 
+    /*
     public MHuobiAsyncRestClient(String accessKeyId, String accessKeySecret, String assetPassword) {
         this.accessKeyId = accessKeyId;
         this.accessKeySecret = accessKeySecret;
@@ -52,16 +61,27 @@ public class MHuobiAsyncRestClient implements MAsyncRestClient {
 
         this.apiClient = new ApiClient(accessKeyId, accessKeySecret, assetPassword);
     }
+    */
 
-    public static void initSymbolPrecision(JSONArray symbolPrecisionJsonArr) {
+    @PostConstruct
+    public void init(@Value("${huobi-precision}") String huobiPrecisionStr) {
+        initExchangeInfo(huobiPrecisionStr);
+    }
+
+    public static void initExchangeInfo(String huobiPrecisionStr) {
+
+        JSONArray symbolPrecisionJsonArr = new JSONObject(huobiPrecisionStr).getJSONArray("data");
+
         for (int i = 0; i < symbolPrecisionJsonArr.length(); i++) {
             JSONObject symbolPrecisionJson = symbolPrecisionJsonArr.getJSONObject(i);
             String baseCurrency = symbolPrecisionJson.getString("base-currency");
             String quoteCurrency = symbolPrecisionJson.getString("quote-currency");
             int pricePrecision = symbolPrecisionJson.getInt("price-precision");
             int amountPrecision = symbolPrecisionJson.getInt("amount-precision");
-            symbolPrecisionMap
-                .put(baseCurrency + quoteCurrency, new PriceQuantityPrecisionPair(pricePrecision, amountPrecision));
+            ExchangeInfo exchangeInfo = new ExchangeInfo();
+            exchangeInfo.setQuantityPrecision(amountPrecision);
+            exchangeInfo.setPricePrecision(pricePrecision);
+            symbolExchangeInfoMap.put(baseCurrency + quoteCurrency, exchangeInfo);
         }
     }
 
@@ -80,7 +100,7 @@ public class MHuobiAsyncRestClient implements MAsyncRestClient {
 
     /**
      * GET /market/depth 获取 Market MDepth 数据
-     *
+     * <p>
      * "bids": 买盘,[price(成交价), amount(成交量)], 按price降序,
      * "asks": 卖盘,[price(成交价), amount(成交量)], 按price升序
      */
@@ -143,6 +163,11 @@ public class MHuobiAsyncRestClient implements MAsyncRestClient {
         FutureTask<MGetBalanceRsp> futureTask = new FutureTask<MGetBalanceRsp>(getBalanceTask);
         executorService.execute(futureTask);
         return futureTask;
+    }
+
+    @Override
+    public ExchangeInfo getExchangeInfo(String baseCoin, String quoteCoin) {
+        return symbolExchangeInfoMap.get(baseCoin+quoteCoin);
     }
 
     public static void main(String[] args) {

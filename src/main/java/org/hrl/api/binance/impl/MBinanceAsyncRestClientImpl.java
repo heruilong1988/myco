@@ -27,6 +27,9 @@ import org.hrl.api.rsp.MGetAccountsRsp;
 import org.hrl.api.rsp.MGetBalanceRsp;
 import org.hrl.api.rsp.MPlaceOrderRsp;
 import org.hrl.api.rsp.MQueryOrderRsp;
+import org.hrl.domain.ExchangeInfo;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Component;
 
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -56,17 +59,20 @@ import java.util.concurrent.FutureTask;
     ]
  */
 
+@Component
 public class MBinanceAsyncRestClientImpl implements MAsyncRestClient{
 
     private BinanceApiRestClient binanceApiRestClient;
     private ExecutorService executorService;
 
+    /*
     public MBinanceAsyncRestClientImpl(BinanceApiRestClient binanceApiRestClient) {
         this.binanceApiRestClient = binanceApiRestClient;
         this.executorService = Executors.newFixedThreadPool(300);
     }
+    */
 
-    public MBinanceAsyncRestClientImpl(String accesskey, String secretkey) {
+    public MBinanceAsyncRestClientImpl(@Value("${binance-accesskey}") String accesskey, @Value("${binance-secretkey}")String secretkey) {
         BinanceApiClientFactory factory = BinanceApiClientFactory.newInstance(accesskey, secretkey);
         this.binanceApiRestClient = factory.newRestClient();
         this.executorService = Executors.newFixedThreadPool(300);
@@ -115,6 +121,14 @@ public class MBinanceAsyncRestClientImpl implements MAsyncRestClient{
         FutureTask<MGetBalanceRsp> futureTask = new FutureTask<MGetBalanceRsp>(binanceGetBalanceTask);
         executorService.execute(futureTask);
         return futureTask;
+    }
+
+    @Override
+    public ExchangeInfo getExchangeInfo(String baseCoin, String quoteCoin) {
+        ExchangeInfo exchangeInfo = new ExchangeInfo();
+        exchangeInfo.setPricePrecision(8);
+        exchangeInfo.setQuantityPrecision(8);
+        return exchangeInfo;
     }
 
     @Override
