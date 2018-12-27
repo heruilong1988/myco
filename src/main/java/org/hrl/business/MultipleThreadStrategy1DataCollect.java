@@ -30,6 +30,7 @@ public class MultipleThreadStrategy1DataCollect {
         String quoteCoin = "usdt";
         ExecutorService executorService = Executors.newFixedThreadPool(10);
 
+
         for (int i = 0; i < baseCoinArr.length; i++) {
             Strategy1 strategy = new Strategy1(asyncRestClientPlatformA, asyncRestClientPlatformB, baseCoinArr[i],
                 quoteCoin, profitThreshold, reqIntervalMillis);

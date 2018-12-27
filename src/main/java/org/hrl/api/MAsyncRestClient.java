@@ -8,6 +8,10 @@ import org.hrl.api.rsp.*;
 
 import java.util.concurrent.FutureTask;
 
+/**
+ * 订单最多取小数位后8位
+ */
+
 public interface MAsyncRestClient {
 
 

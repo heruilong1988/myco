@@ -262,9 +262,26 @@
     </logger>
 
 
+    <appender name="ROOTROLLING" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>./logs/root.txt</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+            <!-- rollover daily -->
+            <fileNamePattern>./logs/bak/root-%d{yyyy-MM-dd}.%i.txt</fileNamePattern>
+            <!-- each file should be at most 20MB, keep 60 days worth of history, but at most 20GB -->
+            <maxFileSize>20MB</maxFileSize>
+            <maxHistory>60</maxHistory>
+            <totalSizeCap>20GB</totalSizeCap>
+        </rollingPolicy>
+        <encoder>
+            <pattern>%d{yyyy/MM/ddHH:mm:ss.SSS} %-5level %logger{36} - %msg%n</pattern>
+        </encoder>
+    </appender>
 
     <root level="INFO">
+<!--
         <appender-ref ref="STDOUT" />
+-->
+        <appender-ref ref="ROOTROLLING"/>
         <appender-ref ref="ERROR" />
     </root>
 

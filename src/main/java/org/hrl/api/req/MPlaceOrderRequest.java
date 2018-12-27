@@ -1,8 +1,9 @@
 package org.hrl.api.req;
 
+import com.google.common.base.MoreObjects;
 import org.hrl.api.rsp.MOrderSide;
 import org.hrl.api.rsp.MOrderType;
-import com.google.common.base.MoreObjects;
+
 
 public class MPlaceOrderRequest {
 
@@ -38,7 +39,7 @@ public class MPlaceOrderRequest {
     }
 
     public void setPrice(double price) {
-        this.price = price;
+        this.price = (double) Math.round(price * 100000000) / 100000000;
     }
 
     public double getQuantity() {
@@ -46,7 +47,7 @@ public class MPlaceOrderRequest {
     }
 
     public void setQuantity(double quantity) {
-        this.quantity = quantity;
+        this.quantity = (double) Math.round(quantity * 100000000) / 100000000;
     }
 
     public String getBaseCoin() {
@@ -76,11 +77,11 @@ public class MPlaceOrderRequest {
     @Override
     public String toString() {
         return MoreObjects.toStringHelper(this)
-                .add("price", price)
-                .add("quantity", quantity)
-                .add("baseCoin", baseCoin)
-                .add("quoteCoin", quoteCoin)
-                .add("accountId", accountId)
-                .toString();
+            .add("price", price)
+            .add("quantity", quantity)
+            .add("baseCoin", baseCoin)
+            .add("quoteCoin", quoteCoin)
+            .add("accountId", accountId)
+            .toString();
     }
 }

@@ -33,6 +33,29 @@ public class AppConfig {
     @Value("${req-interval-millis}")
     private long reqIntervalMillis;
 
+    @Value("${huobi-precision}")
+    private String huobiPrecisionStr;
+
+    @Value("${binance-precision}")
+    private String binancePrecisionStr;
+
+
+    public String getBinancePrecisionStr() {
+        return binancePrecisionStr;
+    }
+
+    public void setBinancePrecisionStr(String binancePrecisionStr) {
+        this.binancePrecisionStr = binancePrecisionStr;
+    }
+
+    public String getHuobiPrecisionStr() {
+        return huobiPrecisionStr;
+    }
+
+    public void setHuobiPrecisionStr(String huobiPrecisionStr) {
+        this.huobiPrecisionStr = huobiPrecisionStr;
+    }
+
     public long getReqIntervalMillis() {
         return reqIntervalMillis;
     }

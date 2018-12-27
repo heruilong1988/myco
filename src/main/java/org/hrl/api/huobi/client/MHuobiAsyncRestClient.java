@@ -1,5 +1,7 @@
 package org.hrl.api.huobi.client;
 
+import java.util.HashMap;
+import java.util.Map;
 import org.hrl.api.MAsyncRestClient;
 import org.hrl.api.huobi.response.*;
 import org.hrl.api.huobi.task.*;
@@ -13,6 +15,9 @@ import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.FutureTask;
+import org.hrl.domain.PriceQuantityPrecisionPair;
+import org.json.JSONArray;
+import org.json.JSONObject;
 
 /*
 限制频率为10秒100次（单个APIKEY维度限制，建议行情API访问也要加上签名，否则限频会更严格
@@ -20,9 +25,11 @@ import java.util.concurrent.FutureTask;
 
 public class MHuobiAsyncRestClient implements MAsyncRestClient {
 
+    private static Map<String, PriceQuantityPrecisionPair> symbolPrecisionMap = new HashMap<>();
+
     private String accountId;
 
-    ExecutorService executorService = Executors.newFixedThreadPool(1000);
+    ExecutorService executorService = Executors.newFixedThreadPool(300);
 
     ApiClient apiClient;
 
@@ -46,6 +53,18 @@ public class MHuobiAsyncRestClient implements MAsyncRestClient {
         this.apiClient = new ApiClient(accessKeyId, accessKeySecret, assetPassword);
     }
 
+    public static void initSymbolPrecision(JSONArray symbolPrecisionJsonArr) {
+        for (int i = 0; i < symbolPrecisionJsonArr.length(); i++) {
+            JSONObject symbolPrecisionJson = symbolPrecisionJsonArr.getJSONObject(i);
+            String baseCurrency = symbolPrecisionJson.getString("base-currency");
+            String quoteCurrency = symbolPrecisionJson.getString("quote-currency");
+            int pricePrecision = symbolPrecisionJson.getInt("price-precision");
+            int amountPrecision = symbolPrecisionJson.getInt("amount-precision");
+            symbolPrecisionMap
+                .put(baseCurrency + quoteCurrency, new PriceQuantityPrecisionPair(pricePrecision, amountPrecision));
+        }
+    }
+
     /**
      * 查询交易对
      *
@@ -64,8 +83,6 @@ public class MHuobiAsyncRestClient implements MAsyncRestClient {
      *
      * "bids": 买盘,[price(成交价), amount(成交量)], 按price降序,
      * "asks": 卖盘,[price(成交价), amount(成交量)], 按price升序
-     *
-     * @return
      */
     public FutureTask<MDepth> depth(String baseCoin, String quoteCoin) {
 
@@ -89,8 +106,6 @@ public class MHuobiAsyncRestClient implements MAsyncRestClient {
 
     /**
      * GET /v1/order/orders/{order-id} 查询某个订单详情
-     *
-     * @return
      */
     public FutureTask<MQueryOrderRsp> queryOrder(MQueryOrderRequest request) {
         request.setAccountId(accountId);
@@ -100,7 +115,7 @@ public class MHuobiAsyncRestClient implements MAsyncRestClient {
         return futureTask;
     }
 
-    public FutureTask<MGetAccountsRsp> getAccounts(){
+    public FutureTask<MGetAccountsRsp> getAccounts() {
         GetAccountsTask getAccountsTask = new GetAccountsTask(apiClient);
         FutureTask<MGetAccountsRsp> futureTask = new FutureTask<>(getAccountsTask);
         executorService.execute(futureTask);
@@ -110,8 +125,6 @@ public class MHuobiAsyncRestClient implements MAsyncRestClient {
 
     /**
      * POST /v1/order/orders/{order-id}/submitcancel 申请撤销一个订单请求
-     *
-     * @return
      */
     public FutureTask<MCancelOrderRsp> cancelOrder(MCancelOrderRequest mCancelOrderRequest) {
 
@@ -132,7 +145,7 @@ public class MHuobiAsyncRestClient implements MAsyncRestClient {
         return futureTask;
     }
 
-        public static void main(String[] args) {
+    public static void main(String[] args) {
 
     }
 

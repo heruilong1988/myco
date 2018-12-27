@@ -10,6 +10,8 @@ import org.hrl.business.MultipleThreadStrategy1DataCollect;
 import org.hrl.business.Strategy1DataCollectTask;
 import org.hrl.business.Strategy1;
 import org.hrl.config.AppConfig;
+import org.json.JSONArray;
+import org.json.JSONObject;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.ConfigurableApplicationContext;
@@ -38,25 +40,40 @@ public class Application {
 
         AppConfig appConfig = applicationContext.getBean(AppConfig.class);
 
+        JSONArray huobiPrecisionArray = new JSONObject(appConfig.getHuobiPrecisionStr()).getJSONArray("data");
+
+        JSONArray binancePrecisionArray = new JSONObject(appConfig.getBinancePrecisionStr()).getJSONArray("symbols");
+
         if (appConfig.isProxyEnabled()) {
-            System.setProperty("https.proxyHost", "localhost");
-            System.setProperty("https.proxyPort", "1080");
+            /*System.setProperty("https.proxyHost", "localhost");
+            System.setProperty("https.proxyPort", "1080");*/
+            System.setProperty("socksProxyHost", "172.31.1.162");
+            System.setProperty("socksProxyPort", "1080");
         }
 
+        /*
         Properties properties = new Properties();
         try {
             properties.load(Thread.currentThread().getContextClassLoader().getResourceAsStream("sys.properties"));
         } catch (IOException e) {
             e.printStackTrace();
         }
+        */
 
-        String API_KEY = properties.getProperty("huobi-accesskey");
-        String API_SECRET = properties.getProperty("huobi-secretkey");
+        String API_KEY = appConfig.getHuobiAccessKey();
+        String API_SECRET = appConfig.getHuobiSecretKey();
+
+        /*String API_KEY = properties.getProperty("huobi-accesskey");
+        String API_SECRET = properties.getProperty("huobi-secretkey");*/
+
         MAsyncRestClient huoBiAsyncRestClient = new MHuobiAsyncRestClient(API_KEY, API_SECRET);
 
-        String BINANCE_API_KEY = properties.getProperty("binance-accesskey");
-        String BINANCE_API_SECRET = properties.getProperty("binance-secretkey");
+        String BINANCE_API_KEY = appConfig.getBinanceAccessKey();
+        String BINANCE_API_SECRET = appConfig.getBinanceSecretKey();
 
+       /* String BINANCE_API_KEY = properties.getProperty("binance-accesskey");
+        String BINANCE_API_SECRET = properties.getProperty("binance-secretkey");
+*/
         BinanceApiClientFactory factory = BinanceApiClientFactory.newInstance(BINANCE_API_KEY, BINANCE_API_SECRET);
         BinanceApiRestClient binanceApiRestClient = factory.newRestClient();
         MAsyncRestClient mBinanceAsyncRestClient = new MBinanceAsyncRestClientImpl(binanceApiRestClient);

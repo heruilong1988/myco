@@ -64,7 +64,7 @@ public class Strategy1 {
     private boolean notEnoughQuoteCoinBalancePlatformB = false;
 
     public Strategy1(MAsyncRestClient mAsyncRestClientPlatformA, MAsyncRestClient mAsyncRestClientPlatformB,
-        String baseCoin, String quoteCoin,double profitThreshold, long reqIntervalMillis) {
+        String baseCoin, String quoteCoin, double profitThreshold, long reqIntervalMillis) {
         this.mAsyncRestClientPlatformA = mAsyncRestClientPlatformA;
         this.mAsyncRestClientPlatformB = mAsyncRestClientPlatformB;
         this.baseCoin = baseCoin;
@@ -122,14 +122,15 @@ public class Strategy1 {
     }
 
     public void dataCollect() {
-        LOGGER.error("error!!!");
+        Thread.currentThread().setName("primarythread:" + baseCoin);
         while (true) {
+            //LOGGER.info("{} is alive", Thread.currentThread().getName());
             try {
                 long startNs = System.nanoTime();
                 calcDepthProfit();
 
                 long sleepMs = calcSleepMillis(startNs);
-                LOGGER.info("sleepMs:{}", sleepMs);
+                //LOGGER.info("sleepMs:{}", sleepMs);
                 if (sleepMs > 0) {
                     try {
                         //System.out.println(sleepTime);
@@ -139,7 +140,9 @@ public class Strategy1 {
                     }
                 }
             } catch (Exception e) {
-                LOGGER.error("businessone Exception", e);
+                LOGGER.error("dataCollect Exception", e);
+            } catch (Throwable t) {
+                LOGGER.error("throwable ", t);
             }
         }
     }
