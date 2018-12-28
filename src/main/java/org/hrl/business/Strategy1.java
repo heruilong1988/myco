@@ -21,6 +21,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.FutureTask;
+import org.springframework.beans.factory.annotation.Autowired;
 
 public class Strategy1 {
 
@@ -46,9 +47,10 @@ public class Strategy1 {
     private boolean stop = false;
     private long firstOrderRoundCount = 0;
 
-    //config
+    //config，利润阈值
     private double profitThreshold = 0.002;
-    //config
+
+    //config,请求间的间隔
     private long reqIntervalMillis = 200;
 
     private double accountBalanceQuoteCoinPlatformA = 0.0;
@@ -63,26 +65,34 @@ public class Strategy1 {
     private boolean notEnoughtBaseCoinBalancePlatformB = false;
     private boolean notEnoughQuoteCoinBalancePlatformB = false;
 
-    private ExchangeInfo exchangeInfoPlatformA;
-    private ExchangeInfo exchangeInfoPlatformB;
+    //private ExchangeInfo exchangeInfoPlatformA;
+    //private ExchangeInfo exchangeInfoPlatformB;
 
-    private int tradeQuantityPrecision;
+    //private int tradeQuantityPrecision;
 
-    private int quantityPrecision;
-    public Strategy1(MAsyncRestClient mAsyncRestClientPlatformA, MAsyncRestClient mAsyncRestClientPlatformB,
-        String baseCoin, String quoteCoin, double profitThreshold, long reqIntervalMillis) {
+    public Strategy1(MAsyncRestClient mAsyncRestClientPlatformA,
+        MAsyncRestClient mAsyncRestClientPlatformB,
+        String baseCoin,
+        String quoteCoin,
+        double profitThreshold,
+        long reqIntervalMillis,
+        double maxTradeQtyQuoteCoin,
+        int maxInprogressOrderPairNum) {
+
         this.mAsyncRestClientPlatformA = mAsyncRestClientPlatformA;
         this.mAsyncRestClientPlatformB = mAsyncRestClientPlatformB;
         this.baseCoin = baseCoin;
         this.quoteCoin = quoteCoin;
         this.profitThreshold = profitThreshold;
         this.reqIntervalMillis = reqIntervalMillis;
+        this.maxTradeQtyQuoteCoin = maxTradeQtyQuoteCoin;
+        this.maxInprogressOrderPairNum = maxInprogressOrderPairNum;
 
+        //exchangeInfoPlatformA = mAsyncRestClientPlatformA.getExchangeInfo(baseCoin, quoteCoin);
+        //exchangeInfoPlatformB = mAsyncRestClientPlatformB.getExchangeInfo(baseCoin, quoteCoin);
 
-        exchangeInfoPlatformA = mAsyncRestClientPlatformA.getExchangeInfo(baseCoin, quoteCoin);
-        exchangeInfoPlatformB = mAsyncRestClientPlatformB.getExchangeInfo(baseCoin, quoteCoin);
-
-        tradeQuantityPrecision = Math.min(exchangeInfoPlatformA.getQuantityPrecision(), exchangeInfoPlatformB.getQuantityPrecision());
+        //tradeQuantityPrecision = Math
+        //.min(exchangeInfoPlatformA.getQuantityPrecision(), exchangeInfoPlatformB.getQuantityPrecision());
 
         LOGGER = LoggerFactory.getLogger(baseCoin);
         ORDERLOGGER = LoggerFactory.getLogger(baseCoin + ".Order");
@@ -131,9 +141,11 @@ public class Strategy1 {
             throw new GetBalanceException(e);
         }
 
+
     }
 
-    public void dataCollect() {
+    public void dataCollect(){
+        //initAccountBalance();
         Thread.currentThread().setName("primarythread:" + baseCoin);
         while (true) {
             //LOGGER.info("{} is alive", Thread.currentThread().getName());
@@ -243,7 +255,10 @@ public class Strategy1 {
     }
 
 
-    public void firstOrderStrategy() {
+    public void firstOrderStrategy() throws GetBalanceException {
+
+        initAccountBalance();
+
         while (!stop) {
             try {
                 long startNs = System.nanoTime();
@@ -645,9 +660,17 @@ public class Strategy1 {
     }
 
     private double calcMinQuantity(PriceQtyPair pair1, PriceQtyPair pair2, double maxTradeQtyQuoteCoin) {
+
+
         double minPairQty = Math.min(pair1.getQty(), pair2.getQty());
         double maxTradeQtyBaseCoin = maxTradeQtyQuoteCoin / ((pair1.getPrice() + pair2.getPrice()) / 2.0);
         double minQty = Math.min(minPairQty, maxTradeQtyBaseCoin);
+
+        ExchangeInfo exchangeInfoPlatformA = mAsyncRestClientPlatformA.getExchangeInfo(baseCoin, quoteCoin);
+        ExchangeInfo exchangeInfoPlatformB = mAsyncRestClientPlatformB.getExchangeInfo(baseCoin, quoteCoin);
+
+        int tradeQuantityPrecision = Math
+            .min(exchangeInfoPlatformA.getQuantityPrecision(), exchangeInfoPlatformB.getQuantityPrecision());
 
         BigDecimal bigDecimal = new BigDecimal(minQty);
         bigDecimal.setScale(tradeQuantityPrecision, RoundingMode.UP);

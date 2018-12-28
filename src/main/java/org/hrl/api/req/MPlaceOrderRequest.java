@@ -77,6 +77,8 @@ public class MPlaceOrderRequest {
     @Override
     public String toString() {
         return MoreObjects.toStringHelper(this)
+            .add("side", side)
+            .add("type", type)
             .add("price", price)
             .add("quantity", quantity)
             .add("baseCoin", baseCoin)

@@ -42,7 +42,7 @@ public class MApiRestClientFactory {
         String binanceAccessKey = properties.getProperty("binance-accesskey");
         String binanceSecretKey = properties.getProperty("binance-secretkey");
 
-        huobiAsyncRestClient = new MHuobiAsyncRestClient(huobiAccessKey, huobiSecretKey);
+        huobiAsyncRestClient = new MHuobiAsyncRestClient(huobiAccessKey, huobiSecretKey,null);
 
         binanceAsyncRestClient = new MBinanceAsyncRestClientImpl(binanceAccessKey, binanceSecretKey);
 

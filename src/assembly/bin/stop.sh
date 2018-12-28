@@ -31,3 +31,4 @@ if [ -f "${PRO_PID_FILE}" ]; then
 fi
 
 echo "NO INSTANCE OF ${SERVICE_FULL_NAME} IS RUNNING"
+

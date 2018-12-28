@@ -42,11 +42,11 @@ public class BinanceGetBalanceTask implements Callable<MGetBalanceRsp> {
             String locked = balance.getLocked();
 
             MCurrencyBalance mCurrencyBalance = new MCurrencyBalance();
-            mCurrencyBalance.setCurrency(asset);
+            mCurrencyBalance.setCurrency(asset.toLowerCase());
             mCurrencyBalance.setFrozenBalance(Double.parseDouble(locked));
             mCurrencyBalance.setTradeBalance(Double.parseDouble(free));
 
-            mCurrencyBalanceMap.put(asset, mCurrencyBalance);
+            mCurrencyBalanceMap.put(asset.toLowerCase(), mCurrencyBalance);
         }
 
         mBalance.setmCurrencyBalanceMap(mCurrencyBalanceMap);

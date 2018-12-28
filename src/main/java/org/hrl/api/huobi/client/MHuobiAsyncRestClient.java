@@ -20,6 +20,7 @@ import java.util.concurrent.FutureTask;
 import org.hrl.domain.ExchangeInfo;
 import org.hrl.domain.PriceQuantityPrecisionPair;
 import org.json.JSONArray;
+import org.json.JSONException;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
@@ -33,9 +34,9 @@ import javax.annotation.PostConstruct;
 @Component
 public class MHuobiAsyncRestClient implements MAsyncRestClient {
 
-    private static Map<String, ExchangeInfo> symbolExchangeInfoMap = new HashMap<>();
+    private  Map<String, ExchangeInfo> symbolExchangeInfoMap = new HashMap<>();
 
-    private String accountId;
+    private String accountId = "3341355";
 
     ExecutorService executorService = Executors.newFixedThreadPool(300);
 
@@ -45,10 +46,14 @@ public class MHuobiAsyncRestClient implements MAsyncRestClient {
     public final String accessKeySecret;
     public final String assetPassword;
 
-    public MHuobiAsyncRestClient(@Value("${huobi-accesskey}") String accessKeyId, @Value(("${huobi-secretkey}")) String accessKeySecret) {
+    private String exchangeInfoStr;
+
+    public MHuobiAsyncRestClient(@Value("${huobi-accesskey}") String accessKeyId,
+        @Value(("${huobi-secretkey}")) String accessKeySecret, @Value("${huobi-precision}") String exchangeInfoStr) {
         this.accessKeyId = accessKeyId;
         this.accessKeySecret = accessKeySecret;
         this.assetPassword = null;
+        this.exchangeInfoStr = exchangeInfoStr;
 
         this.apiClient = new ApiClient(accessKeyId, accessKeySecret);
     }
@@ -64,11 +69,11 @@ public class MHuobiAsyncRestClient implements MAsyncRestClient {
     */
 
     @PostConstruct
-    public void init(@Value("${huobi-precision}") String huobiPrecisionStr) {
-        initExchangeInfo(huobiPrecisionStr);
+    public void init() throws JSONException {
+        initExchangeInfo(exchangeInfoStr);
     }
 
-    public static void initExchangeInfo(String huobiPrecisionStr) {
+    public void initExchangeInfo(String huobiPrecisionStr) throws JSONException {
 
         JSONArray symbolPrecisionJsonArr = new JSONObject(huobiPrecisionStr).getJSONArray("data");
 
@@ -167,7 +172,7 @@ public class MHuobiAsyncRestClient implements MAsyncRestClient {
 
     @Override
     public ExchangeInfo getExchangeInfo(String baseCoin, String quoteCoin) {
-        return symbolExchangeInfoMap.get(baseCoin+quoteCoin);
+        return symbolExchangeInfoMap.get(baseCoin + quoteCoin);
     }
 
     public static void main(String[] args) {

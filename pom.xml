@@ -12,7 +12,7 @@
 
     <groupId>org.hrl</groupId>
     <artifactId>twoplatformcoin</artifactId>
-    <version>1.0.2-SNAPSHOT</version>
+    <version>1.0.3-SNAPSHOT</version>
 
     <properties>
         <project.mainClass>org.hrl.Application</project.mainClass>
@@ -213,6 +213,7 @@
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-test</artifactId>
+            <scope>test</scope>
         </dependency>
 
         <dependency>

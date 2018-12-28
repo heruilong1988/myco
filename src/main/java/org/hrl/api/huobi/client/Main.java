@@ -49,7 +49,7 @@ public class Main {
         API_KEY = properties.getProperty("huobi-accesskey");
         API_SECRET = properties.getProperty("huobi-secretkey");
 
-        MHuobiAsyncRestClient = new MHuobiAsyncRestClient(API_KEY, API_SECRET);
+        MHuobiAsyncRestClient = new MHuobiAsyncRestClient(API_KEY, API_SECRET,null);
 
         try {
             //apiSample();

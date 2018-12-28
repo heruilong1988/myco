@@ -13,14 +13,17 @@ public class MultipleThreadStrategy1 {
 
     private double profitThreshold;
     private long reqIntervalMillis;
-
+    private int maxTradeQtyQuoteCoin;
+    private int maxInprogressOrderPairNum;
 
     public MultipleThreadStrategy1(MAsyncRestClient asyncRestClientPlatformA, MAsyncRestClient asyncRestClientPlatformB,
-        double profitThreshold, long reqIntervalMillis) {
+        double profitThreshold, long reqIntervalMillis, int maxTradeQtyQuoteCoin, int maxInprogressOrderPairNum) {
         this.asyncRestClientPlatformA = asyncRestClientPlatformA;
         this.asyncRestClientPlatformB = asyncRestClientPlatformB;
         this.profitThreshold = profitThreshold;
         this.reqIntervalMillis = reqIntervalMillis;
+        this.maxTradeQtyQuoteCoin = maxTradeQtyQuoteCoin;
+        this.maxInprogressOrderPairNum = maxInprogressOrderPairNum;
     }
 
     public void start() {
@@ -32,8 +35,8 @@ public class MultipleThreadStrategy1 {
 
         for (int i = 0; i < baseCoinArr.length; i++) {
             Strategy1 strategy = new Strategy1(asyncRestClientPlatformA, asyncRestClientPlatformB, baseCoinArr[i],
-                quoteCoin, profitThreshold, reqIntervalMillis);
-            Strategy1DataCollectTask strategy1Task = new Strategy1DataCollectTask(strategy);
+                quoteCoin, profitThreshold, reqIntervalMillis, maxTradeQtyQuoteCoin, maxInprogressOrderPairNum);
+            Strategy1Task strategy1Task = new Strategy1Task(strategy);
             executorService.execute(strategy1Task);
         }
     }

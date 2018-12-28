@@ -39,6 +39,27 @@ public class AppConfig {
     @Value("${binance-precision}")
     private String binancePrecisionStr;
 
+    @Value("${maxTradeQtyQuoteCoin}")
+    private int maxTradeQtyQuoteCoin;
+
+    @Value("${maxInprogressOrderPairNum}")
+    private int maxInprogressOrderPairNum;
+
+    public int getMaxTradeQtyQuoteCoin() {
+        return maxTradeQtyQuoteCoin;
+    }
+
+    public void setMaxTradeQtyQuoteCoin(int maxTradeQtyQuoteCoin) {
+        this.maxTradeQtyQuoteCoin = maxTradeQtyQuoteCoin;
+    }
+
+    public int getMaxInprogressOrderPairNum() {
+        return maxInprogressOrderPairNum;
+    }
+
+    public void setMaxInprogressOrderPairNum(int maxInprogressOrderPairNum) {
+        this.maxInprogressOrderPairNum = maxInprogressOrderPairNum;
+    }
 
     public String getBinancePrecisionStr() {
         return binancePrecisionStr;

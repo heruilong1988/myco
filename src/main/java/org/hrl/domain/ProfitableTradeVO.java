@@ -1,6 +1,7 @@
 package org.hrl.domain;
 
 import com.google.common.base.MoreObjects;
+import com.google.common.base.Objects;
 import org.hrl.api.MAsyncRestClient;
 import org.hrl.api.req.MPlaceOrderRequest;
 import org.hrl.api.rsp.MOrderSide;
@@ -114,5 +115,17 @@ public class ProfitableTradeVO {
                 .add("mOrderSide", mOrderSide)
                 .add("mOrderType", mOrderType)
                 .toString();
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        ProfitableTradeVO o =  (ProfitableTradeVO) obj;
+        return Objects.equal(this.getBaseCoin(), o.getBaseCoin()) &&
+            Objects.equal(this.getQuoteCoin(), o.getQuoteCoin()) &&
+            Objects.equal(this.getmAsyncRestClient(), o.getmAsyncRestClient()) &&
+            Objects.equal(this.getmOrderSide(), o.getmOrderSide()) &&
+            Objects.equal(this.getmOrderType(), o.getmOrderType()) &&
+            Objects.equal(this.getPrice(), o.getPrice()) &&
+            Objects.equal(this.getQuantity(), o.getQuantity());
     }
 }

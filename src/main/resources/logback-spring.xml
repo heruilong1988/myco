@@ -278,9 +278,7 @@
     </appender>
 
     <root level="INFO">
-<!--
         <appender-ref ref="STDOUT" />
--->
         <appender-ref ref="ROOTROLLING"/>
         <appender-ref ref="ERROR" />
     </root>

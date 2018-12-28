@@ -1,8 +1,14 @@
 package org.hrl.business;
 
-public class Strategy1Task implements Runnable{
+import org.hrl.exception.GetBalanceException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-    private  Strategy1 strategy1;
+public class Strategy1Task implements Runnable {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(Strategy1Task.class);
+
+    private Strategy1 strategy1;
 
     public Strategy1Task(Strategy1 strategy1) {
         this.strategy1 = strategy1;
@@ -11,6 +17,13 @@ public class Strategy1Task implements Runnable{
 
     @Override
     public void run() {
-        strategy1.firstOrderStrategy();
+        try {
+            strategy1.firstOrderStrategy();
+        } catch (GetBalanceException e) {
+            LOGGER.error("STRAGETY TASK FAIL.", e);
+            e.printStackTrace();
+        } catch (Throwable t) {
+            LOGGER.error("STRATEGY TASK EXIT.", t);
+        }
     }
 }

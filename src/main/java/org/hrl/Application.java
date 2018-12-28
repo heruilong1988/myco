@@ -11,6 +11,7 @@ import org.hrl.business.Strategy1DataCollectTask;
 import org.hrl.business.Strategy1;
 import org.hrl.config.AppConfig;
 import org.json.JSONArray;
+import org.json.JSONException;
 import org.json.JSONObject;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -31,7 +32,7 @@ public class Application {
     private static String PRO_CONF_DIR_PATH =
             System.getProperty("conf.dir", "src" + File.separator + "main" + File.separator + "resources");
 
-    public static void main(String[] args) throws MalformedURLException {
+    public static void main(String[] args) throws MalformedURLException, JSONException {
 
         ClassLoader loader = new URLClassLoader(new URL[]{new File(PRO_CONF_DIR_PATH).toURI().toURL()});
         Thread.currentThread().setContextClassLoader(loader);
@@ -39,10 +40,6 @@ public class Application {
         ConfigurableApplicationContext applicationContext = SpringApplication.run(Application.class, args);
 
         AppConfig appConfig = applicationContext.getBean(AppConfig.class);
-
-        JSONArray huobiPrecisionArray = new JSONObject(appConfig.getHuobiPrecisionStr()).getJSONArray("data");
-
-        JSONArray binancePrecisionArray = new JSONObject(appConfig.getBinancePrecisionStr()).getJSONArray("symbols");
 
         if (appConfig.isProxyEnabled()) {
             /*System.setProperty("https.proxyHost", "localhost");
@@ -66,31 +63,36 @@ public class Application {
         /*String API_KEY = properties.getProperty("huobi-accesskey");
         String API_SECRET = properties.getProperty("huobi-secretkey");*/
 
-        MAsyncRestClient huoBiAsyncRestClient = new MHuobiAsyncRestClient(API_KEY, API_SECRET);
+        MAsyncRestClient huoBiAsyncRestClient = applicationContext.getBean(MHuobiAsyncRestClient.class);
+        //MAsyncRestClient huoBiAsyncRestClient = new MHuobiAsyncRestClient(API_KEY, API_SECRET);
 
-        String BINANCE_API_KEY = appConfig.getBinanceAccessKey();
-        String BINANCE_API_SECRET = appConfig.getBinanceSecretKey();
+        //String BINANCE_API_KEY = appConfig.getBinanceAccessKey();
+        //String BINANCE_API_SECRET = appConfig.getBinanceSecretKey();
 
-       /* String BINANCE_API_KEY = properties.getProperty("binance-accesskey");
-        String BINANCE_API_SECRET = properties.getProperty("binance-secretkey");
-*/
-        BinanceApiClientFactory factory = BinanceApiClientFactory.newInstance(BINANCE_API_KEY, BINANCE_API_SECRET);
-        BinanceApiRestClient binanceApiRestClient = factory.newRestClient();
-        MAsyncRestClient mBinanceAsyncRestClient = new MBinanceAsyncRestClientImpl(BINANCE_API_KEY, BINANCE_API_SECRET);
+        // String BINANCE_API_KEY = properties.getProperty("binance-accesskey");
+        //String BINANCE_API_SECRET = properties.getProperty("binance-secretkey");
+
+        //BinanceApiClientFactory factory = BinanceApiClientFactory.newInstance(BINANCE_API_KEY, BINANCE_API_SECRET);
+        //BinanceApiRestClient binanceApiRestClient = factory.newRestClient();
+        //MAsyncRestClient mBinanceAsyncRestClient = new MBinanceAsyncRestClientImpl(BINANCE_API_KEY, BINANCE_API_SECRET);
+        MAsyncRestClient mBinanceAsyncRestClient = applicationContext.getBean(MBinanceAsyncRestClientImpl.class);
 
         double profitThreshold = appConfig.getProfitThreshold();
         long reqIntervalMillis = appConfig.getReqIntervalMillis();
+        int maxTradeQtyQuoteCoin = appConfig.getMaxTradeQtyQuoteCoin();
+        int maxInprogressOrderPairNum = appConfig.getMaxInprogressOrderPairNum();
+
 
         if (appConfig.isDataCollectEnabled()) {
             MultipleThreadStrategy1DataCollect multipleThreadStrategy1DataCollect = new MultipleThreadStrategy1DataCollect(
                     huoBiAsyncRestClient, mBinanceAsyncRestClient, appConfig.getBaseCoinArr().split(","), profitThreshold,
-                    reqIntervalMillis);
+                    reqIntervalMillis, maxTradeQtyQuoteCoin, maxInprogressOrderPairNum);
             multipleThreadStrategy1DataCollect.start();
             System.out.println("multipleTreadStrategy1DataCollect started.===============================================");
         } else {
 
             MultipleThreadStrategy1 multipleThreadStrategy1 = new MultipleThreadStrategy1(huoBiAsyncRestClient,
-                    mBinanceAsyncRestClient, profitThreshold, reqIntervalMillis);
+                    mBinanceAsyncRestClient, profitThreshold, reqIntervalMillis, maxTradeQtyQuoteCoin, maxInprogressOrderPairNum);
             multipleThreadStrategy1.start();
             System.out.println("multipleTreadStrategy1 started.===============================================");
         }
