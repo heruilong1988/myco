@@ -15,8 +15,9 @@ public class MultipleThreadStrategy1 {
     private long reqIntervalMillis;
     private int maxTradeQtyQuoteCoin;
     private int maxInprogressOrderPairNum;
+    private String[] baseCoinArr;
 
-    public MultipleThreadStrategy1(MAsyncRestClient asyncRestClientPlatformA, MAsyncRestClient asyncRestClientPlatformB,
+    public MultipleThreadStrategy1(MAsyncRestClient asyncRestClientPlatformA, MAsyncRestClient asyncRestClientPlatformB,String[] baseCoinArr,
         double profitThreshold, long reqIntervalMillis, int maxTradeQtyQuoteCoin, int maxInprogressOrderPairNum) {
         this.asyncRestClientPlatformA = asyncRestClientPlatformA;
         this.asyncRestClientPlatformB = asyncRestClientPlatformB;
@@ -24,12 +25,13 @@ public class MultipleThreadStrategy1 {
         this.reqIntervalMillis = reqIntervalMillis;
         this.maxTradeQtyQuoteCoin = maxTradeQtyQuoteCoin;
         this.maxInprogressOrderPairNum = maxInprogressOrderPairNum;
+        this.baseCoinArr = baseCoinArr;
     }
 
     public void start() {
         String quoteCoin = "usdt";
         //String[] baseCoinArr = {"btc","eth","xrp","trx","ltc","etc","eos"};
-        String[] baseCoinArr = {"eos"};
+
 
         ExecutorService executorService = Executors.newFixedThreadPool(10);
 

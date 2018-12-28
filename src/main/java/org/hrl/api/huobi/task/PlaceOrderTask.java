@@ -27,7 +27,7 @@ public class PlaceOrderTask implements Callable<MPlaceOrderRsp> {
         request.accountId = mPlaceOrderRequest.getAccountId();
         request.amount = String.valueOf(mPlaceOrderRequest.getQuantity());
         request.price = String.valueOf(mPlaceOrderRequest.getPrice());
-        request.source = "org/hrl/api";
+        request.source = "api";
         request.type = Utils.toOrderType(mPlaceOrderRequest.getSide(), mPlaceOrderRequest.getType());
         request.symbol = Utils.toSymbol(mPlaceOrderRequest.getBaseCoin(), mPlaceOrderRequest.getQuoteCoin());
 

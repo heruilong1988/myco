@@ -344,7 +344,7 @@ public class Strategy1 {
             }
             */
 
-            if (placedOrderVO1.isFinished() && placedOrderVO2.isFinished()) {
+            if (placedOrderVO1 != null && placedOrderVO1.isFinished() && placedOrderVO2 != null && placedOrderVO2.isFinished()) {
                 historyPlacedOrderPairVOList.add(placedOrderPairVO);
                 iterator.remove();
             }
@@ -434,6 +434,7 @@ public class Strategy1 {
                     mPlaceOrderRsp1 = profitableTradeRspFuture1.get();
                     placedOrderVO1 = new PlacedOrderVO(profitableTradeVO1.getmAsyncRestClient(), profitableTradeVO1,
                         mPlaceOrderRsp1);
+                    ORDERLOGGER.info("placed order {}", placedOrderVO1);
                 } catch (InterruptedException e) {
                     LOGGER.error("fail place order.profitbaleTradeVO1:{},mPlaceOrderRsp1:{}", profitableTradeVO1,
                         mPlaceOrderRsp1, e);
@@ -453,6 +454,7 @@ public class Strategy1 {
                     mPlaceOrderRsp2 = profitableTradeRspFuture2.get();
                     placedOrderVO2 = new PlacedOrderVO(profitableTradeVO2.getmAsyncRestClient(), profitableTradeVO2,
                         mPlaceOrderRsp2);
+                    ORDERLOGGER.info("place order:{}", placedOrderVO2);
                 } catch (InterruptedException e) {
                     LOGGER.error("fail place order.profitbaleTradeVO2:{},mPlaceOrderRsp2:{}", profitableTradeVO2,
                         mPlaceOrderRsp2, e);
@@ -473,7 +475,6 @@ public class Strategy1 {
         }
 
         return placedOrderPairVOList;
-
     }
 
 
@@ -673,9 +674,8 @@ public class Strategy1 {
             .min(exchangeInfoPlatformA.getQuantityPrecision(), exchangeInfoPlatformB.getQuantityPrecision());
 
         BigDecimal bigDecimal = new BigDecimal(minQty);
-        bigDecimal.setScale(tradeQuantityPrecision, RoundingMode.UP);
+        double returnQty = bigDecimal.setScale(tradeQuantityPrecision, RoundingMode.UP).doubleValue();
 
-        double returnQty = bigDecimal.doubleValue();
         return returnQty;
     }
 

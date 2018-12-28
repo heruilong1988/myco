@@ -1,5 +1,7 @@
 package org.hrl.domain;
 
+import com.google.common.base.MoreObjects;
+
 public class ProfitableTradePairVO {
 
     private ProfitableTradeVO profitableTradeVO1;
@@ -24,5 +26,13 @@ public class ProfitableTradePairVO {
 
     public void setProfitableTradeVO2(ProfitableTradeVO profitableTradeVO2) {
         this.profitableTradeVO2 = profitableTradeVO2;
+    }
+
+    @Override
+    public String toString() {
+        return MoreObjects.toStringHelper(this)
+                .add("profitableTradeVO1", profitableTradeVO1)
+                .add("profitableTradeVO2", profitableTradeVO2)
+                .toString();
     }
 }

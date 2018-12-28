@@ -6,6 +6,8 @@
 
 package org.hrl.domain;
 
+import com.google.common.base.MoreObjects;
+
 public class PriceQuantityPrecisionPair {
 
     private int pricePrecision;
@@ -30,5 +32,13 @@ public class PriceQuantityPrecisionPair {
 
     public void setQuantityPrecision(int quantityPrecision) {
         this.quantityPrecision = quantityPrecision;
+    }
+
+    @Override
+    public String toString() {
+        return MoreObjects.toStringHelper(this)
+                .add("pricePrecision", pricePrecision)
+                .add("quantityPrecision", quantityPrecision)
+                .toString();
     }
 }

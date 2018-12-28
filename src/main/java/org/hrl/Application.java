@@ -1,30 +1,21 @@
 package org.hrl;
 
 import org.hrl.api.MAsyncRestClient;
-import org.hrl.api.binance.BinanceApiClientFactory;
-import org.hrl.api.binance.BinanceApiRestClient;
 import org.hrl.api.binance.impl.MBinanceAsyncRestClientImpl;
 import org.hrl.api.huobi.client.MHuobiAsyncRestClient;
 import org.hrl.business.MultipleThreadStrategy1;
 import org.hrl.business.MultipleThreadStrategy1DataCollect;
-import org.hrl.business.Strategy1DataCollectTask;
-import org.hrl.business.Strategy1;
 import org.hrl.config.AppConfig;
-import org.json.JSONArray;
+import org.hrl.config.PrecisionConfig;
 import org.json.JSONException;
-import org.json.JSONObject;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.ConfigurableApplicationContext;
 
 import java.io.File;
-import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLClassLoader;
-import java.util.Properties;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 @SpringBootApplication
 public class Application {
@@ -42,10 +33,10 @@ public class Application {
         AppConfig appConfig = applicationContext.getBean(AppConfig.class);
 
         if (appConfig.isProxyEnabled()) {
-            /*System.setProperty("https.proxyHost", "localhost");
-            System.setProperty("https.proxyPort", "1080");*/
-            System.setProperty("socksProxyHost", "172.31.1.162");
-            System.setProperty("socksProxyPort", "1080");
+            System.setProperty("https.proxyHost", "localhost");
+            System.setProperty("https.proxyPort", "1080");
+            //System.setProperty("socksProxyHost", "172.31.1.162");
+            //System.setProperty("socksProxyPort", "1080");
         }
 
         /*
@@ -92,7 +83,7 @@ public class Application {
         } else {
 
             MultipleThreadStrategy1 multipleThreadStrategy1 = new MultipleThreadStrategy1(huoBiAsyncRestClient,
-                    mBinanceAsyncRestClient, profitThreshold, reqIntervalMillis, maxTradeQtyQuoteCoin, maxInprogressOrderPairNum);
+                    mBinanceAsyncRestClient, appConfig.getBaseCoinArr().split(","), profitThreshold, reqIntervalMillis, maxTradeQtyQuoteCoin, maxInprogressOrderPairNum);
             multipleThreadStrategy1.start();
             System.out.println("multipleTreadStrategy1 started.===============================================");
         }

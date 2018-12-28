@@ -1,5 +1,7 @@
 package org.hrl.domain;
 
+import com.google.common.base.MoreObjects;
+
 public class ExchangeInfo {
 
 
@@ -38,5 +40,15 @@ public class ExchangeInfo {
 
     public void setMinQuantity(double minQuantity) {
         this.minQuantity = minQuantity;
+    }
+
+    @Override
+    public String toString() {
+        return MoreObjects.toStringHelper(this)
+                .add("pricePrecision", pricePrecision)
+                .add("quantityPrecision", quantityPrecision)
+                .add("minPrice", minPrice)
+                .add("minQuantity", minQuantity)
+                .toString();
     }
 }

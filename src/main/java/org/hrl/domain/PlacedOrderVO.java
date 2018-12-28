@@ -115,13 +115,13 @@ public class PlacedOrderVO {
     @Override
     public String toString() {
         return MoreObjects.toStringHelper(this)
-            .add("mAsyncRestClient", mAsyncRestClient)
-            .add("profitableTradeVO", profitableTradeVO)
-            .add("mPlaceOrderRsp", mPlaceOrderRsp)
-            .add("mQueryOrderRsp", mQueryOrderRsp)
-            .add("finished", finished)
-            .add("lastFieldQuantity", lastFieldQuantity)
-            .toString();
+                .add("mAsyncRestClient", mAsyncRestClient)
+                .add("profitableTradeVO", profitableTradeVO)
+                .add("mPlaceOrderRsp", mPlaceOrderRsp)
+                .add("mQueryOrderRsp", mQueryOrderRsp)
+                .add("finished", finished)
+                .add("lastFieldQuantity", lastFieldQuantity)
+                .toString();
     }
 }
 

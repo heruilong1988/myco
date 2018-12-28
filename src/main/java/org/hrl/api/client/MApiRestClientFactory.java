@@ -44,7 +44,7 @@ public class MApiRestClientFactory {
 
         huobiAsyncRestClient = new MHuobiAsyncRestClient(huobiAccessKey, huobiSecretKey,null);
 
-        binanceAsyncRestClient = new MBinanceAsyncRestClientImpl(binanceAccessKey, binanceSecretKey);
+        binanceAsyncRestClient = new MBinanceAsyncRestClientImpl(binanceAccessKey, binanceSecretKey, null);
 
     }
 

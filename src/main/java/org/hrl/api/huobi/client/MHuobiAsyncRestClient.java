@@ -1,31 +1,29 @@
 package org.hrl.api.huobi.client;
 
-import java.util.HashMap;
-import java.util.Map;
-
 import org.hrl.api.MAsyncRestClient;
-import org.hrl.api.huobi.response.*;
+import org.hrl.api.huobi.response.Symbol;
 import org.hrl.api.huobi.task.*;
 import org.hrl.api.req.MCancelOrderRequest;
 import org.hrl.api.req.MGetBalanceRequest;
 import org.hrl.api.req.MPlaceOrderRequest;
 import org.hrl.api.req.MQueryOrderRequest;
 import org.hrl.api.rsp.*;
-
-import java.util.List;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.FutureTask;
-
+import org.hrl.config.PrecisionConfig;
 import org.hrl.domain.ExchangeInfo;
-import org.hrl.domain.PriceQuantityPrecisionPair;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.FutureTask;
 
 /*
 限制频率为10秒100次（单个APIKEY维度限制，建议行情API访问也要加上签名，否则限频会更严格
@@ -42,18 +40,19 @@ public class MHuobiAsyncRestClient implements MAsyncRestClient {
 
     ApiClient apiClient;
 
+    PrecisionConfig precisionConfig;
+
     public final String accessKeyId;
     public final String accessKeySecret;
     public final String assetPassword;
 
-    private String exchangeInfoStr;
-
     public MHuobiAsyncRestClient(@Value("${huobi-accesskey}") String accessKeyId,
-        @Value(("${huobi-secretkey}")) String accessKeySecret, @Value("${huobi-precision}") String exchangeInfoStr) {
+                                 @Value(("${huobi-secretkey}")) String accessKeySecret, @Autowired PrecisionConfig precisionConfig) {
         this.accessKeyId = accessKeyId;
         this.accessKeySecret = accessKeySecret;
         this.assetPassword = null;
-        this.exchangeInfoStr = exchangeInfoStr;
+
+        this.precisionConfig = precisionConfig;
 
         this.apiClient = new ApiClient(accessKeyId, accessKeySecret);
     }
@@ -69,8 +68,8 @@ public class MHuobiAsyncRestClient implements MAsyncRestClient {
     */
 
     @PostConstruct
-    public void init() throws JSONException {
-        initExchangeInfo(exchangeInfoStr);
+    public void init()  {
+        initExchangeInfo(precisionConfig.getHuobiPrecisionStr());
     }
 
     public void initExchangeInfo(String huobiPrecisionStr) throws JSONException {

@@ -1,5 +1,7 @@
 package org.hrl.domain;
 
+import com.google.common.base.MoreObjects;
+
 public class PlacedOrderPairVO {
 
     private PlacedOrderVO placedOrderVO1;
@@ -24,5 +26,13 @@ public class PlacedOrderPairVO {
 
     public void setPlacedOrderVO2(PlacedOrderVO placedOrderVO2) {
         this.placedOrderVO2 = placedOrderVO2;
+    }
+
+    @Override
+    public String toString() {
+        return MoreObjects.toStringHelper(this)
+                .add("placedOrderVO1", placedOrderVO1)
+                .add("placedOrderVO2", placedOrderVO2)
+                .toString();
     }
 }
