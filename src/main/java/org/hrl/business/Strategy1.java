@@ -7,6 +7,7 @@ import java.math.RoundingMode;
 import java.util.Map;
 import org.hrl.api.MAsyncRestClient;
 import org.hrl.api.req.MGetBalanceRequest;
+import org.hrl.api.req.MQueryOrderRequest;
 import org.hrl.api.rsp.*;
 import org.hrl.domain.*;
 import org.hrl.exception.GetBalanceException;
@@ -710,5 +711,176 @@ public class Strategy1 {
             .add("accountBalanceQuoteCoinPlatformB", accountBalanceQuoteCoinPlatformB)
             .add("accountBalanceBaseCoinPlatformB", accountBalanceBaseCoinPlatformB)
             .toString();
+    }
+
+
+
+    public long getBusinessCount() {
+        return businessCount;
+    }
+
+    public void setBusinessCount(long businessCount) {
+        this.businessCount = businessCount;
+    }
+
+    public List<PlacedOrderPairVO> getInProgressPlacedOrderPairVOList() {
+        return inProgressPlacedOrderPairVOList;
+    }
+
+    public void setInProgressPlacedOrderPairVOList(
+        List<PlacedOrderPairVO> inProgressPlacedOrderPairVOList) {
+        this.inProgressPlacedOrderPairVOList = inProgressPlacedOrderPairVOList;
+    }
+
+    public List<PlacedOrderPairVO> getHistoryPlacedOrderPairVOList() {
+        return historyPlacedOrderPairVOList;
+    }
+
+    public void setHistoryPlacedOrderPairVOList(List<PlacedOrderPairVO> historyPlacedOrderPairVOList) {
+        this.historyPlacedOrderPairVOList = historyPlacedOrderPairVOList;
+    }
+
+    public MAsyncRestClient getmAsyncRestClientPlatformA() {
+        return mAsyncRestClientPlatformA;
+    }
+
+    public void setmAsyncRestClientPlatformA(MAsyncRestClient mAsyncRestClientPlatformA) {
+        this.mAsyncRestClientPlatformA = mAsyncRestClientPlatformA;
+    }
+
+    public MAsyncRestClient getmAsyncRestClientPlatformB() {
+        return mAsyncRestClientPlatformB;
+    }
+
+    public void setmAsyncRestClientPlatformB(MAsyncRestClient mAsyncRestClientPlatformB) {
+        this.mAsyncRestClientPlatformB = mAsyncRestClientPlatformB;
+    }
+
+    public String getBaseCoin() {
+        return baseCoin;
+    }
+
+    public void setBaseCoin(String baseCoin) {
+        this.baseCoin = baseCoin;
+    }
+
+    public String getQuoteCoin() {
+        return quoteCoin;
+    }
+
+    public void setQuoteCoin(String quoteCoin) {
+        this.quoteCoin = quoteCoin;
+    }
+
+    public double getMaxTradeQtyQuoteCoin() {
+        return maxTradeQtyQuoteCoin;
+    }
+
+    public void setMaxTradeQtyQuoteCoin(double maxTradeQtyQuoteCoin) {
+        this.maxTradeQtyQuoteCoin = maxTradeQtyQuoteCoin;
+    }
+
+    public int getMaxInprogressOrderPairNum() {
+        return maxInprogressOrderPairNum;
+    }
+
+    public void setMaxInprogressOrderPairNum(int maxInprogressOrderPairNum) {
+        this.maxInprogressOrderPairNum = maxInprogressOrderPairNum;
+    }
+
+    public boolean isStop() {
+        return stop;
+    }
+
+    public void setStop(boolean stop) {
+        this.stop = stop;
+    }
+
+    public long getFirstOrderRoundCount() {
+        return firstOrderRoundCount;
+    }
+
+    public void setFirstOrderRoundCount(long firstOrderRoundCount) {
+        this.firstOrderRoundCount = firstOrderRoundCount;
+    }
+
+    public double getProfitThreshold() {
+        return profitThreshold;
+    }
+
+    public void setProfitThreshold(double profitThreshold) {
+        this.profitThreshold = profitThreshold;
+    }
+
+    public long getReqIntervalMillis() {
+        return reqIntervalMillis;
+    }
+
+    public void setReqIntervalMillis(long reqIntervalMillis) {
+        this.reqIntervalMillis = reqIntervalMillis;
+    }
+
+    public double getAccountBalanceQuoteCoinPlatformA() {
+        return accountBalanceQuoteCoinPlatformA;
+    }
+
+    public void setAccountBalanceQuoteCoinPlatformA(double accountBalanceQuoteCoinPlatformA) {
+        this.accountBalanceQuoteCoinPlatformA = accountBalanceQuoteCoinPlatformA;
+    }
+
+    public double getAccountBalanceBaseCoinPlatformA() {
+        return accountBalanceBaseCoinPlatformA;
+    }
+
+    public void setAccountBalanceBaseCoinPlatformA(double accountBalanceBaseCoinPlatformA) {
+        this.accountBalanceBaseCoinPlatformA = accountBalanceBaseCoinPlatformA;
+    }
+
+    public double getAccountBalanceQuoteCoinPlatformB() {
+        return accountBalanceQuoteCoinPlatformB;
+    }
+
+    public void setAccountBalanceQuoteCoinPlatformB(double accountBalanceQuoteCoinPlatformB) {
+        this.accountBalanceQuoteCoinPlatformB = accountBalanceQuoteCoinPlatformB;
+    }
+
+    public double getAccountBalanceBaseCoinPlatformB() {
+        return accountBalanceBaseCoinPlatformB;
+    }
+
+    public void setAccountBalanceBaseCoinPlatformB(double accountBalanceBaseCoinPlatformB) {
+        this.accountBalanceBaseCoinPlatformB = accountBalanceBaseCoinPlatformB;
+    }
+
+    public boolean isNotEnoughBaseCoinBalancePlatformA() {
+        return notEnoughBaseCoinBalancePlatformA;
+    }
+
+    public void setNotEnoughBaseCoinBalancePlatformA(boolean notEnoughBaseCoinBalancePlatformA) {
+        this.notEnoughBaseCoinBalancePlatformA = notEnoughBaseCoinBalancePlatformA;
+    }
+
+    public boolean isNotEnoughQuoteCoinBalancePlatformA() {
+        return notEnoughQuoteCoinBalancePlatformA;
+    }
+
+    public void setNotEnoughQuoteCoinBalancePlatformA(boolean notEnoughQuoteCoinBalancePlatformA) {
+        this.notEnoughQuoteCoinBalancePlatformA = notEnoughQuoteCoinBalancePlatformA;
+    }
+
+    public boolean isNotEnoughtBaseCoinBalancePlatformB() {
+        return notEnoughtBaseCoinBalancePlatformB;
+    }
+
+    public void setNotEnoughtBaseCoinBalancePlatformB(boolean notEnoughtBaseCoinBalancePlatformB) {
+        this.notEnoughtBaseCoinBalancePlatformB = notEnoughtBaseCoinBalancePlatformB;
+    }
+
+    public boolean isNotEnoughQuoteCoinBalancePlatformB() {
+        return notEnoughQuoteCoinBalancePlatformB;
+    }
+
+    public void setNotEnoughQuoteCoinBalancePlatformB(boolean notEnoughQuoteCoinBalancePlatformB) {
+        this.notEnoughQuoteCoinBalancePlatformB = notEnoughQuoteCoinBalancePlatformB;
     }
 }

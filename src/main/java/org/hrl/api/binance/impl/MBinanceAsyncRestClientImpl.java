@@ -29,6 +29,7 @@ import org.hrl.api.rsp.MQueryOrderRsp;
 import org.hrl.config.PrecisionConfig;
 import org.hrl.domain.ExchangeInfo;
 import org.json.JSONArray;
+import org.json.JSONException;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -91,7 +92,7 @@ public class MBinanceAsyncRestClientImpl implements MAsyncRestClient {
     }
 
     @PostConstruct
-    public void init() {
+    public void init() throws JSONException {
         JSONArray precisionArr = new JSONObject(precisionConfig.getBinancePrecisionStr()).getJSONArray("symbols");
         for (int i = 0; i < precisionArr.length(); i++) {
 
@@ -133,6 +134,8 @@ public class MBinanceAsyncRestClientImpl implements MAsyncRestClient {
         }
         return precision;
     }
+
+
 
     public FutureTask<MDepth> depth(String baseCoin, String quoteCoin) {
         BinanceDepthTask depthTask = new BinanceDepthTask(binanceApiRestClient, baseCoin, quoteCoin);
